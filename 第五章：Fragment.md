@@ -307,3 +307,377 @@ if (activity !=null ){
 }
 ```
 
+## 6、实践
+
+1. 导入依赖库：
+
+   ```groovy
+   /*RecycleView依赖库*/
+   implementation 'androidx.recyclerview:recyclerview:1.2.1'
+   ```
+
+2. 创建新闻实体类：News
+
+   ```kotlin
+   class News(val title: String, val content: String)
+   ```
+
+3. 创建新闻内容碎片布局：news_content_frag.xml
+
+   ```xml
+   <?xml version="1.0" encoding="utf-8"?>
+   <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+       android:layout_width="match_parent"
+       android:layout_height="match_parent">
+       <LinearLayout
+           android:id="@+id/contentLayout"
+           android:layout_width="match_parent"
+           android:layout_height="match_parent"
+           android:orientation="vertical"
+           android:visibility="invisible">
+   
+           <TextView
+               android:id="@+id/newsTitle"
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:gravity="center"
+               android:padding="10dp"
+               android:textSize="20sp"/>
+           <View
+               android:layout_width="match_parent"
+               android:layout_height="1dp"
+               android:background="#000"/>
+           <TextView
+               android:id="@+id/newsContent"
+               android:layout_width="match_parent"
+               android:layout_height="0dp"
+               android:layout_weight="1"
+               android:padding="15dp"
+               android:textSize="18sp"/>
+       </LinearLayout>
+       <View
+           android:layout_width="1dp"
+           android:layout_height="match_parent"
+           android:background="#000"
+           android:layout_alignParentStart="true"/>
+   
+   </RelativeLayout>
+   ```
+
+4.  创建新闻内容碎片：NewsContentFragment
+
+   ```kotlin
+   package com.example.kotlinlearn.fragmentdemo.fragmentbestpractice;
+   
+   import android.os.Bundle
+   import android.view.LayoutInflater
+   import android.view.View
+   import android.view.ViewGroup
+   import androidx.fragment.app.Fragment
+   import com.example.kotlinlearn.databinding.NewsContentFragBinding
+   
+   /**
+    * Author: Zhangtao
+    * Created on 2022/10/12 16:30
+    * Desc:
+    */
+   class NewsContentFragment: Fragment() {
+       private var _binding:NewsContentFragBinding ?= null
+       private val binding get() = _binding!!
+   
+       override fun onCreateView(
+           inflater: LayoutInflater,
+           container: ViewGroup?,
+           savedInstanceState: Bundle?
+       ): View {
+           _binding = NewsContentFragBinding.inflate(inflater,container,false)
+           return binding.root
+       }
+   
+       fun refresh(title:String,content:String){
+           binding.contentLayout.visibility = View.VISIBLE
+           binding.newsTitle.text = title //刷新新闻标题
+           binding.newsContent.text = content //刷新新闻内容
+       }
+       override fun onDestroyView() {
+           super.onDestroyView()
+           _binding = null
+       }
+   }
+   ```
+
+5.  创建新闻内容，单页模式下，activity：NewsContentActivity
+
+   ```kotlin
+   package com.example.kotlinlearn.fragmentdemo.fragmentbestpractice
+   
+   import android.content.Context
+   import android.content.Intent
+   import androidx.appcompat.app.AppCompatActivity
+   import android.os.Bundle
+   import com.example.kotlinlearn.R
+   import com.example.kotlinlearn.databinding.ActivityNewsContentBinding
+   import com.example.kotlinlearn.fragmentdemo.simplefragment.LeftFragment
+   
+   /**
+    * 单页模式下使用的新闻内容界面*/
+   class NewsContentActivity : AppCompatActivity() {
+       lateinit var binding:ActivityNewsContentBinding
+   
+       companion object{
+           fun actionStart(context: Context,title:String,content:String){
+               val intent = Intent(context,NewsContentActivity::class.java).apply {
+                   putExtra("news_title",title)
+                   putExtra("news_content",content)
+               }
+               context.startActivity(intent)
+           }
+       }
+       override fun onCreate(savedInstanceState: Bundle?) {
+           super.onCreate(savedInstanceState)
+           binding = ActivityNewsContentBinding.inflate(layoutInflater)
+           setContentView(binding.root)
+           val title = intent.getStringExtra("news_title")//获取传入的新闻标题
+           val content = intent.getStringExtra("news_content")//获取传入的新闻内容
+           if (title !=null && content!=null) {
+               val fragment = supportFragmentManager.findFragmentById(R.id.newsContentFrag) as NewsContentFragment
+               fragment.refresh(title,content) //刷新NewsContentFragment界面
+           }
+       }
+   }
+   ```
+
+6.  创建单页模式下，activity的布局文件：activity_news_content.xml
+
+   ```xml
+   <?xml version="1.0" encoding="utf-8"?>
+   <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+       xmlns:app="http://schemas.android.com/apk/res-auto"
+       xmlns:tools="http://schemas.android.com/tools"
+       android:layout_width="match_parent"
+       android:layout_height="match_parent"
+       tools:context=".fragmentdemo.fragmentbestpractice.NewsContentActivity">
+   
+       <fragment
+           android:name="com.example.kotlinlearn.fragmentdemo.fragmentbestpractice.NewsContentFragment"
+           android:id="@+id/newsContentFrag"
+           android:layout_width="match_parent"
+           android:layout_height="match_parent"/>
+   </androidx.constraintlayout.widget.ConstraintLayout>
+   ```
+
+7. 创建新闻标题碎片布局：news_title_frag.xml
+
+   ```xml
+   <?xml version="1.0" encoding="utf-8"?>
+   <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+       android:orientation="vertical"
+       android:layout_width="match_parent"
+       android:layout_height="match_parent">
+   
+   
+       <androidx.recyclerview.widget.RecyclerView
+           android:id="@+id/newsTitleRecycleView"
+           android:layout_width="match_parent"
+           android:layout_height="match_parent"/>
+   </LinearLayout>
+   ```
+
+8.  创建RecycleView的子项布局：news_item.xml
+
+   ```xml
+   <?xml version="1.0" encoding="utf-8"?>
+   <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+       android:id="@+id/newsTitle"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:maxLines="1"
+       android:ellipsize="end"
+       android:textSize="18sp"
+       android:paddingLeft="10dp"
+       android:paddingRight="10dp"
+       android:paddingTop="15dp"
+       android:paddingBottom="15dp"> 
+   
+   </TextView>
+   ```
+
+9.  创建新闻标题碎片：NewsTitleFragment
+
+   ```kotlin
+   package com.example.kotlinlearn.fragmentdemo.fragmentbestpractice
+   
+   import android.os.Bundle
+   import android.view.LayoutInflater
+   import android.view.View
+   import android.view.ViewGroup
+   import android.widget.TextView
+   import androidx.fragment.app.Fragment
+   import androidx.recyclerview.widget.LinearLayoutManager
+   import androidx.recyclerview.widget.RecyclerView
+   import com.example.kotlinlearn.R
+   import com.example.kotlinlearn.databinding.NewsTitleFragBinding
+   import com.example.langue.lateinit.getResultMsg
+   
+   /**
+    * Author: Zhangtao
+    * Created on 2022/10/12 16:57
+    * Desc:
+    */
+   class NewsTitleFragment: Fragment() {
+       private var isTwoPane = false
+       private var _binding: NewsTitleFragBinding? = null
+       private val binding get() = _binding!!
+   
+       override fun onCreateView(
+           inflater: LayoutInflater,
+           container: ViewGroup?,
+           savedInstanceState: Bundle?
+       ): View? {
+           _binding = NewsTitleFragBinding.inflate(inflater,container,false)
+           return binding.root
+       }
+   
+       override fun onActivityCreated(savedInstanceState: Bundle?) {
+           super.onActivityCreated(savedInstanceState)
+           isTwoPane = activity?.findViewById<View>(R.id.newsContentLayout) != null
+   
+           //添加适配器
+           val layoutManager = LinearLayoutManager(activity)
+           binding.newsTitleRecycleView.layoutManager = layoutManager
+           val adapter = NewsAdapter(getNews())
+           binding.newsTitleRecycleView.adapter = adapter
+       }
+   
+       private fun getNews():List<News>{
+           val newsList = ArrayList<News>()
+           for (i in 1..50) {
+               val news = News("This is news title $i", getRandomLengthString("This is newsContent $i"))
+               newsList.add(news)
+           }
+           return newsList
+       }
+   
+       private fun getRandomLengthString(str:String):String{
+           val n = (1..20).random()
+           val builder = StringBuilder()
+           repeat(n){
+               builder.append(str)
+           }
+           return builder.toString()
+       }
+   
+       override fun onDestroyView() {
+           super.onDestroyView()
+           _binding = null
+       }
+   
+       inner class NewsAdapter(val newsList:List<News>):RecyclerView.Adapter<NewsAdapter.ViewHolder>(){
+           inner class ViewHolder(view:View):RecyclerView.ViewHolder(view){
+               val newsTitle: TextView = view.findViewById(R.id.newsTitle)
+           }
+   
+           override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+               val view = LayoutInflater.from(parent.context).inflate(R.layout.news_item,parent,false)
+               val holder = ViewHolder(view)
+               holder.itemView.setOnClickListener{
+                   val news = newsList[holder.adapterPosition]
+                   if (isTwoPane){
+                       //如果是双页模式，则刷新newsContentFragment中的内容
+                       val fragment = activity?.supportFragmentManager?.findFragmentById(R.id.newsContentFrag) as NewsContentFragment
+                       fragment.refresh(news.title,news.content)
+                   } else {
+                       //如果是单页模式，则直接启动NewsContentActivity
+                       NewsContentActivity.actionStart(parent.context,news.title,news.content)
+                   }
+               }
+               return holder
+           }
+   
+           override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+               val news = newsList[position]
+               holder.newsTitle.text = news.title
+           }
+   
+           override fun getItemCount()=newsList.size
+       }
+   }
+   ```
+
+10. 修改主页面，单页模式下加载的布局文件：activity_fragment_best_practice
+
+    ```xml
+    <?xml version="1.0" encoding="utf-8"?>
+    <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".fragmentdemo.fragmentbestpractice.FragmentBestPracticeActivity">
+    
+        <fragment
+            android:id="@+id/newsTitleFrag"
+            android:name="com.example.kotlinlearn.fragmentdemo.fragmentbestpractice.NewsTitleFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    ```
+
+11.  通过限定符，控制主页面加载双叶模式下的布局：layout-sw600dp/activity_fragment_best_practice
+
+    ```xml
+    <?xml version="1.0" encoding="utf-8"?>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".fragmentdemo.fragmentbestpractice.FragmentBestPracticeActivity">
+    
+        <fragment
+            android:id="@+id/newsTitleFrag"
+            android:name="com.example.kotlinlearn.fragmentdemo.fragmentbestpractice.NewsTitleFragment"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"/>
+        <FrameLayout
+            android:id="@+id/newsContentLayout"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="3">
+            <fragment
+                android:id="@+id/newsContentFrag"
+                android:name="com.example.kotlinlearn.fragmentdemo.fragmentbestpractice.NewsContentFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+        </FrameLayout>
+    </LinearLayout>
+    ```
+
+12.  主界面Activity：FragmentBestPracticeActivity
+
+    ```kotlin
+    package com.example.kotlinlearn.fragmentdemo.fragmentbestpractice
+    
+    import android.content.Context
+    import android.content.Intent
+    import androidx.appcompat.app.AppCompatActivity
+    import android.os.Bundle
+    import com.example.kotlinlearn.databinding.ActivityFragmentBestPracticeBinding
+    
+    class FragmentBestPracticeActivity : AppCompatActivity() {
+        lateinit var binding:ActivityFragmentBestPracticeBinding
+        override fun onCreate(savedInstanceState: Bundle?) {
+            super.onCreate(savedInstanceState)
+            binding = ActivityFragmentBestPracticeBinding.inflate(layoutInflater)
+            setContentView(binding.root)
+        }
+        companion object{
+            fun actionStart(context: Context){
+                val intent = Intent(context,FragmentBestPracticeActivity::class.java)
+                context.startActivity(intent)
+            }
+        }
+    }
+    ```
+
