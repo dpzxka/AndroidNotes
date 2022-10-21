@@ -1201,3 +1201,173 @@ val values1 = cvOf("name" to "Game of Thrones","author" to "George Martin","page
 ```
 
 > KTX库：contentValuesOf()方法 
+
+### 8、泛型和委托
+
+#### 1、泛型
+
+> 泛型。在一般的编程模式下，需要给任何一个变量指定一个具体的类型，而泛型允许在不指定具体类型的情况下进行编程，这样编写出来的代码将会拥有更好 的扩展性
+
+**定义泛型：**
+
+- 定义泛型类
+
+  ```kotlin
+  class MyClass<T> {
+  	fun method(param: T): T {
+   		return param
+   	}
+  }
+  
+  //调用
+  val myClass = NyClass<Int>()
+  val result = myClass.method(123)
+  ```
+
+- 定义泛型方法
+
+  ```kotlin
+  class MyClass{
+      fun <T> method(param:T):T{
+          return param
+      }
+  }
+  
+  //调用
+  val myClass = MyClass()
+  val result = myClass.method<Int>(123)
+  ```
+
+  > 类型推到机制，如果传入的是Int类型的参数，可以自动推导出泛型的类型是Int型
+  >
+  > ```kotlin
+  > val myClass = MyClass()
+  > val result = myClass.method(123)
+  > ```
+
+  限制泛型类型：
+
+  如，只能将method方法的泛型指定成数字类型，如Int、Float、Double
+
+  ```kotlin
+  class MyClass{
+      fun <T:Number> method(param:T):T{
+          return param
+      }
+  }
+  ```
+
+  > 在默认情况下，所有的泛型都是可以指定成可空类型的，这是因为在不手动指定上界的 时候，泛型的上界默认是Any?。而如果想要让泛型的类型不可为空，只需要将泛型的上界手动 指定成Any
+
+```kotlin
+fun StringBuilder.build(block: StringBuilder.() -> Unit): StringBuilder {
+ 	block()
+ 	return this
+}
+```
+
+改成适用于所有的函数
+
+新建一个build.kt文件
+
+```kotlin
+fun <T> T.build(block:T.() -> Unit):T{
+	block()
+	return this
+}
+```
+
+#### 2、类委托和委托属性
+
+> 委托：操作对象自己不会去处理某段逻辑，而是会把工作委 托给另外一个辅助对象去处理。
+
+Kotlin中也支持委托功能，分为两种：类委托和委托属性
+
+##### 类委托：
+
+操作对象自己不会去处理某段逻辑，而是会把工作委 托给另外一个辅助对象去处理。
+
+> 如果只是让大部分的方法实现调用辅助对象中的方法，少部分的方法实现由自己来重写，甚至加入一些自己独有的方法，那么MySet就会成为一个全新的数据结构类，这就是委托模式的意义所在
+
+```kotlin
+/**
+ * 接收HashSet参数，相当于辅助对象，通过辅助对象实现所有的方法。
+ * */
+class MySet<T>(private val helperSet:HashSet<T>):Set<T> {
+    override val size: Int
+        get() = helperSet.size
+
+    override fun contains(element: T): Boolean {
+        return helperSet.contains(element)
+    }
+
+    override fun containsAll(elements: Collection<T>): Boolean {
+        return helperSet.containsAll(elements)
+    }
+
+    override fun isEmpty(): Boolean {
+        return helperSet.isEmpty()
+    }
+
+    override fun iterator(): Iterator<T> {
+        return helperSet.iterator()
+    }
+}
+```
+
+通过类委派简化，在接口声明的后面使用by关键字，再街上受委托的辅助对象，可以免去模板式代码。如果需要对某个方法进行重写，只需要单独写一个方法，其他方法仍然可以享受类委托的便捷。
+
+```
+//通过类委派简化
+class MySet<T>(private val helperSet:HashSet<T>):Set<T> by helperSet{
+    fun helloWorld() = println("Hello World")
+    override fun isEmpty() = false
+}
+```
+
+##### 委托属性
+
+> 类委托的核心思想是将一个类的具体实现委托给另一个类去完成，而委托属性的核心思想是将 一个属性（字段）的具体实现委托给另一个类去完成。
+
+```kotlin
+class MyClass{
+    var p by Delegate()//代表着将p属性的具体实现委托给了Delegate类去完成。
+    //当调用p属性的时候会自动调用Delegate类的getValue()方法，当给p属性赋值的时候会自动调用Delegate类的setValue()方法。
+}
+```
+
+标准的代码实现模板，在Delegate类中必须实现getValue()和setValue()这 两个方法，并且都要使用operator关键字进行声明。 getValue()方法要接收两个参数：
+
+- 第一个参数用于声明该Delegate类的委托功能可以在什么 类中使用，这里写成MyClass表示仅可在MyClass类中使用；
+
+- 第二个参数KProperty<*>是 Kotlin中的一个属性操作类，可用于获取各种属性相关的值，在当前场景下用不着，但是必须在 方法参数上进行声明。*
+
+  另外，<*>这种泛型的写法表示不知道或者不关心泛型的具体类型，只 是为了通过语法编译而已，有点类似于Java中的写法。至于返回值可以声明成任何类型，根据具体的实现逻辑去写就行.
+
+```kotlin
+class Delegate {
+    var propValue:Any? = null
+    operator fun getValue(myClass: MyClass,prop:KProperty<*>):Any?{
+        return propValue
+    }
+    operator fun setValue(myClass: MyClass,prop: KProperty<*>,value:Any?){
+        propValue = value
+    }
+}
+```
+
+#### 3、lazy函数
+
+> by lazy并不是连在一起的关键 字，只有by才是Kotlin中的关键字，lazy在这里只是一个高阶函数而已
+
+```kotlin
+class Later<T>(val block:() -> T) {
+    var value:Any? = null
+    operator fun getValue(any: Any?,prop:KProperty<*>):T{
+        if (value == null) {
+            value = block()
+        }
+        return value as T
+    }
+}
+```
