@@ -232,3 +232,470 @@ class ContactsActivity : AppCompatActivity() {
 
 #### 4、创建ContentProvider
 
+#### 1、创建Contentprovider步骤
+
+想要实现程序共享数据的功能，通过新建类继承ContentProvider的方式来实现。重写其中的6个抽象方法:
+
+- `onCreate`:初始化，通常完成对数据库的创建和升级，返回True表示初始化成功，false表示失败
+
+- `query`：查询数据，查询的结果放在cursor对象返回
+
+  - uri：确定查询的表
+  - projectino：查询的列
+  - selection、selectionArgs：用于约束查询哪些行
+  - sortOrder：对查询结果进行排序
+
+- `insert`：插入数据，添加完成后，返回一个用于表示这条新纪录的URI
+
+  - uri：确定要添加的表
+  - values：待添加的数据
+
+- `update`：更新已有的数据，返回受影响的行数
+
+  - uri：确定要更新的表
+  - value：要更新的数据
+  - selection、selectionArgs：用于约束更新哪些行
+
+- `delete`：要删除的数据
+
+  - uri：确定要删除的表
+  - selection、selectionArgs：用于约束删除哪些行
+
+- `getType`:根据传入的内容URI，返回相应的MIME类型
+
+  一个内容URI对应的MIME字符串主要有3部分组成：
+
+  - 必须以vnd开头
+  - 如果内容URI以路径结尾，则后接android.cursor.dir/;如果内容URI以id结尾，则后接android.cursor.item/
+  - 最后接上vnd.<authority>.<path>
+
+  对于`content://com.example.app.provider/table1`这个内容URI，对应的MIME类型：
+
+  ```
+  vnd.android.cursor.dir/vnd.com.example.app.provider.table1
+  ```
+
+  对于`content://com.example.app.provider/table1/1`这个内容URI，对应的MIME类型：
+
+  ```
+  vnd.android.cursor.item/vnd.com.example.app.provider.table1
+  ```
+
+  
+
+```kotlin
+class MyProvider:ContentProvider() {
+    override fun onCreate(): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun query(
+        uri: Uri,
+        projection: Array<out String>?,
+        selection: String?,
+        selectionArgs: Array<out String>?,
+        sortOrder: String?,
+    ): Cursor? {
+        TODO("Not yet implemented")
+    }
+
+    override fun getType(uri: Uri): String? {
+        TODO("Not yet implemented")
+    }
+
+    override fun insert(uri: Uri, values: ContentValues?): Uri? {
+        TODO("Not yet implemented")
+    }
+
+    override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?): Int {
+        TODO("Not yet implemented")
+    }
+
+    override fun update(
+        uri: Uri,
+        values: ContentValues?,
+        selection: String?,
+        selectionArgs: Array<out String>?,
+    ): Int {
+        TODO("Not yet implemented")
+    }
+}
+```
+
+`标准URI：`
+
+> 以路径结尾表示期望访问该表中所有的数据，以id结尾表 示期望访问该表中拥有相应id的数据
+
+形式一：访问com.example.app应用中的table1表中的数据
+
+```kotlin
+content://com.example.app.provider/table1
+```
+
+形式二：访问com.example.app应用这table1表中id为1的数据。
+
+```kotlin
+content://com.example.app.provider/table1/1
+```
+
+通过通配符匹配URI的格式，规则：
+
+- ***表示匹配任意长度的任意字符。**
+- **\#表示匹配任意长度的数字。**
+
+匹配任意表的URI格式：
+
+```kotlin
+content://com.example.app.provider/*
+```
+
+匹配table1表中任意一行数据的URI格式：
+
+```
+content://com.example.app.provider/table1/#
+```
+
+借助UriMathcher类，实现匹配URI功能，提供一个addURI的方法，接收三个参数，分别吧authority、path和自定义代码传入。当调用UriMathcher的match方法时，可以将一个Uri对象传入，返回值是某个能够匹配这个Uri对象所对应的自定义代码，利用这个代码，判断调用方期望访问的是哪个表中的数据。
+
+```kotlin
+package com.example.kotlinlearn.contentproviderdemo.customcontentprovider
+
+import android.content.ContentProvider
+import android.content.ContentValues
+import android.content.UriMatcher
+import android.database.Cursor
+import android.net.Uri
+
+/**
+ * Author: Zhangtao
+ * Created on 2022/10/21 9:24
+ * Desc:
+ */
+class MyProvider:ContentProvider() {
+
+    private val table1Dir = 0
+    private val table1Item = 1
+    private val table2Dir = 2
+    private val table2Item = 3
+
+    //获得uriMatcher对象
+    private val uriMatcher = UriMatcher(UriMatcher.NO_MATCH)
+
+    init {
+        //添加匹配的内容格式
+        uriMatcher.addURI("com.example.app.provider","table1",table1Dir)
+        uriMatcher.addURI("com.example.app.provider","table1/#",table1Item)
+        uriMatcher.addURI("com.example.app.provider","table2",table2Dir)
+        uriMatcher.addURI("com.example.app.provider","table2/#",table2Item)
+    }
+
+    override fun onCreate(): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun query(
+        uri: Uri,
+        projection: Array<out String>?,
+        selection: String?,
+        selectionArgs: Array<out String>?,
+        sortOrder: String?,
+    ): Cursor? {
+        when(uriMatcher.match(uri)){
+            table1Dir -> {
+                //查询table1表中的所有的数据
+            }
+            table1Item -> {
+                //查询table1表中的单条数据
+            }
+            table2Dir -> {
+                //查询table2表中的所有的数据
+            }
+            table2Item -> {
+                //查询table2表中的单条数据
+            }
+        }
+        return null
+    }
+
+    override fun getType(uri: Uri) = when(uriMatcher.match(uri)){
+        table1Dir -> "vnd.android.cursor.dir/vnd.com.example.app.provider.table1"
+        table1Item -> "vnd.android.cursor.item/vnd.com.example.app.provider.table1"
+        table2Dir -> "vnd.android.cursor.dir/vnd.com.example.app.provider.table2"
+        table2Item -> "vnd.android.cursor.item/vnd.com.example.app.provider.table2"
+        else -> null
+    }
+
+    override fun insert(uri: Uri, values: ContentValues?): Uri? {
+        TODO("Not yet implemented")
+    }
+
+    override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?): Int {
+        TODO("Not yet implemented")
+    }
+
+    override fun update(
+        uri: Uri,
+        values: ContentValues?,
+        selection: String?,
+        selectionArgs: Array<out String>?,
+    ): Int {
+        TODO("Not yet implemented")
+    }
+}
+```
+
+
+
+#### 案例
+
+1、定义Databaseprovider
+
+```kotlin
+package com.example.kotlinlearn.contentproviderdemo.customcontentprovider
+
+import android.content.ContentProvider
+import android.content.ContentValues
+import android.content.UriMatcher
+import android.database.Cursor
+import android.net.Uri
+import com.example.kotlinlearn.databasedemo.sqlitedemo.MyDatabaseHelper
+
+/**访问datebase中的数据
+ * authority：com.example.database.provider
+ * */
+class DatebaseProvider : ContentProvider() {
+
+    private val bookDir = 0
+    private val bookItem = 1
+    private val categoryDir = 2
+    private val categoryItem = 3
+    private val authority = "com.example.database.provider"
+    private var dbHelper:MyDatabaseHelper? = null
+
+    //获得uriMatcher对象
+    /**
+     * by lazy代码是kotlin中一种懒加载技术，一开始不会执行，只有当uriMatcher变量首次被调用的时候执行，并将代码中
+     * 最后一行代码的返回值赋给uriMatcher。
+     * */
+    private val uriMatcher by lazy {
+        val matcher = UriMatcher(UriMatcher.NO_MATCH)
+        matcher.addURI(authority,"book",bookDir)
+        matcher.addURI(authority,"book/#",bookItem)
+        matcher.addURI(authority,"category",categoryDir)
+        matcher.addURI(authority,"category/#",categoryItem)
+        matcher
+    }
+
+    override fun delete(uri: Uri, selection: String?, selectionArgs: Array<String>?) = dbHelper?.let {
+        //删除数据
+        val db = it.writableDatabase
+        val deleteRows = when(uriMatcher.match(uri)){
+            bookDir -> db.delete("Book",selection,selectionArgs)
+            bookItem -> {
+                val bookId = uri.pathSegments[1]
+                db.delete("Book","id=?", arrayOf(bookId))
+            }
+            categoryDir -> db.delete("Category",selection,selectionArgs)
+            categoryItem -> {
+                val categoryId = uri.pathSegments[1]
+                db.delete("Category","id=?", arrayOf(categoryId))
+            }
+            else -> 0
+        }
+        deleteRows
+    } ?:0
+
+    override fun getType(uri: Uri) = when(uriMatcher.match(uri)){
+        bookDir -> "vnd.android.cursor.dir/vnd.$authority.book"
+        bookItem -> "vnd.android.cursor.item/vnd.$authority.book"
+        categoryDir -> "vnd.android.cursor.dir/vnd.$authority.category"
+        categoryItem -> "vnd.android.cursor.item/vnd.$authority.category"
+        else -> null
+    }
+
+    override fun insert(uri: Uri, values: ContentValues?) = dbHelper?.let {
+        //添加数据
+        val db = it.readableDatabase
+        val uriReturn = when(uriMatcher.match(uri)){
+            bookDir,bookItem -> {
+                val newBookId = db.insert("Book",null,values)
+                Uri.parse("content://$authority/book/$newBookId")
+            }
+            categoryItem,categoryDir -> {
+                val categoryId = db.insert("Category",null,values)
+                Uri.parse("content://$authority/category/$categoryId")
+            }
+            else -> null
+        }
+        uriReturn
+    }
+
+    override fun onCreate() = context?.let {
+        dbHelper = MyDatabaseHelper(it,"BookStore",7)
+        true
+    } ?:false
+
+    override fun query(
+        uri: Uri, projection: Array<String>?, selection: String?,
+        selectionArgs: Array<String>?, sortOrder: String?,
+    ) = dbHelper?.let {
+        //查询数据
+        val db = it.readableDatabase
+        val cursor = when(uriMatcher.match(uri)){
+            bookDir -> {
+                db.query("Book",projection,selection,selectionArgs,null,null,sortOrder)
+            }
+            bookItem -> {
+                val bookId = uri.pathSegments[1]
+                db.query("Book",projection,"id=?", arrayOf(bookId),null,null,sortOrder)
+            }
+            categoryDir -> {
+                db.query("Category",projection,selection,selectionArgs,null,null,sortOrder)
+            }
+            categoryItem -> {
+                val categoryId = uri.pathSegments[1]
+                db.query("Category",projection,"id=?", arrayOf(categoryId),null,null,sortOrder)
+            }
+            else -> null
+        }
+        cursor
+    }
+
+    override fun update(
+        uri: Uri, values: ContentValues?, selection: String?,
+        selectionArgs: Array<String>?,
+    ) = dbHelper?.let {
+        //更新数据
+        val db = it.readableDatabase
+        val updateRows = when(uriMatcher.match(uri)){
+            bookDir -> db.update("Book",values,selection,selectionArgs)
+            bookItem -> {
+                val bookId = uri.pathSegments[1]
+                db.update("Book",values,"id =?", arrayOf(bookId))
+            }
+            categoryDir -> db.update("Category",values,selection,selectionArgs)
+            categoryItem ->{
+                val categoryId = uri.pathSegments[1]
+                db.update("Category",values,"id=?", arrayOf(categoryId))
+            }
+            else -> 0
+        }
+        updateRows
+    } ?:0
+}
+```
+
+2、AndroidManifest.xml文件
+
+```xml
+<provider
+    android:name=".contentproviderdemo.customcontentprovider.DatebaseProvider"
+    android:authorities="com.example.database.provider"
+    android:enabled="true"
+    android:exported="true"></provider>
+```
+
+3、定义数据库
+
+```kotlin
+class MyDatabaseHelper(val context: Context,name:String,version:Int): SQLiteOpenHelper(context,name,null,version){
+
+    private val createBook = "create table Book (" +
+            " id integer primary key autoincrement," +
+            "author text," +
+            "price real," +
+            "pages integer," +
+            "name text," +
+            "category_id integer)" //建立关联字段
+    private val createCategory = "create table CateGory (" +
+            "id integer primary key autoincrement," +
+            "category_name text," +
+            "category_code integer)"
+
+    //数据表的创建
+    override fun onCreate(db: SQLiteDatabase) {
+        db.execSQL(createBook)// 在execSQL执行建表语句，保证在数据库创建完成的同时可以成功创建BOOK表。
+        db.execSQL(createCategory)
+        //跨程序访问时不能使用Toast
+        //Toast.makeText(context,"create succeeded",Toast.LENGTH_SHORT).show()
+    }
+
+    //更新数据库
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        //升级数据库的方式，如果是首次安装，if中所有操作都会执行。
+        //覆盖安装，只会在原来的基础上，执行最新的if
+        if (oldVersion <= 1){
+            db.execSQL(createCategory)
+        }
+        if(oldVersion <= 2) {
+            db.execSQL("alter table Book add column category_id integer") //新增关联字段
+        }
+    }
+}
+```
+
+4、定义外部访问程序
+
+```kotlin
+package com.example.providerdemo
+
+import android.annotation.SuppressLint
+import android.net.Uri
+import androidx.appcompat.app.AppCompatActivity
+import android.os.Bundle
+import android.util.Log
+import androidx.core.content.contentValuesOf
+import com.example.providerdemo.databinding.ActivityMainBinding
+
+class MainActivity : AppCompatActivity() {
+    lateinit var binding: ActivityMainBinding
+    private val authority = "com.example.database.provider"
+
+    var bookId:String? = null
+
+    @SuppressLint("Range")
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        binding.addData.setOnClickListener {
+            //添加数据
+            val uri = Uri.parse("content://$authority/book")
+            val values = contentValuesOf("name" to "A Clash of Kings","author" to "George Martin",
+            "pages" to 1040,"price" to 22.85)
+            val newUri = contentResolver.insert(uri,values)
+            bookId = newUri?.pathSegments?.get(1)
+        }
+        binding.queryData.setOnClickListener {
+            //查询数据
+            val uri = Uri.parse("content://$authority/book")
+            contentResolver.query(uri,null,null,null,null)?.apply {
+                while (moveToNext()){
+                    val name = getString(getColumnIndex("name"))
+                    val author = getString(getColumnIndex("author"))
+                    val pages = getInt(getColumnIndex("pages"))
+                    val price = getDouble(getColumnIndex("price"))
+                    Log.i("Zhangtao", "book name is : $name,author is : $author, pages is : $pages,price is : $price")
+                }
+                close()
+            }
+        }
+        binding.updateData.setOnClickListener {
+            //更新数据
+            bookId?.let {
+                val uri = Uri.parse("content://$authority/book/$it")
+                val values = contentValuesOf("name" to "A Storm of Swords","pages" to 1216,"price" to 240)
+                contentResolver.update(uri,values,null,null)
+            }
+        }
+        binding.deleteData.setOnClickListener {
+            //删除数据
+            bookId?.let {
+                val uri = Uri.parse("content://$authority/book/$it")
+                contentResolver.delete(uri,null,null)
+            }
+        }
+    }
+}
+```
+
