@@ -1371,3 +1371,24 @@ class Later<T>(val block:() -> T) {
     }
 }
 ```
+
+### 9、infix函数
+
+> 限制：
+>
+> infix函数是`不能定义成顶层函数`的，它必须是某个类的成员函数，可以使用扩展函数的方式将它定义到某个类当中；
+>
+> 其次，`infix函数必须接收且只能接收一个参数`，至于参数类型是没有限制的。只有同时满足这两点，infix函数的语法糖才具备使用的条件
+
+```kotlin
+/**
+ * String 的拓展函数
+ * 加上infix关键字之后，beginsWith函数变成infix函数，除了传统的函数调用，可以用一种特殊的语法糖格式调用
+ * if(”Hello Kotlin“ beginsWith "Hello"){
+ *      //处理具体的逻辑
+ *  }
+ *  infix函数允许我们将函数调用时的小数点、括号等计算机相关的语法去掉，从而使用一种更接近英语的语法来编写程序
+ *  */
+
+infix fun String.beginsWith(prefix: String) = startsWith(prefix)
+```
