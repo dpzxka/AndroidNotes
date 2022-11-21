@@ -1392,3 +1392,11 @@ class Later<T>(val block:() -> T) {
 
 infix fun String.beginsWith(prefix: String) = startsWith(prefix)
 ```
+
+调用：
+
+```kotlin
+if("Hello Kotlin" beginsWith "Hello"){
+    //处理具体的逻辑
+}
+```
