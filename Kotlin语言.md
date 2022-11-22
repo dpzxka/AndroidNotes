@@ -118,6 +118,48 @@ fun getScore(name:String) = when(name){
 }
 ```
 
+#### 循环语句
+
+while方法同java
+
+kotlin区间：
+
+```kotlin
+val range = 0..10 //表示从0到10的闭区间 [0,10]
+```
+
+```kotlin
+fun main(){
+	for(i in 0..10){
+		println(i)
+	}
+}
+```
+
+左开右闭
+
+```kotlin
+val range o until 10 //[0.10)
+```
+
+递增
+
+```kotlin
+for(i in 0 until 10 step 2){ //通过step关键字
+	println(i)
+}
+```
+
+降序
+
+```
+for(i in 10 downTo 1){
+	pringln(i)
+}
+```
+
+
+
 ### 面向对象编程
 
 ```kotlin

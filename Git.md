@@ -48,4 +48,55 @@
 
    4. 的
 
-6. 
+6. 忽略某些文件不提交
+
+   如，修改app/.gitignore文件内容
+
+   ```groovy
+   /build
+   /src/test
+   /src/androidTest
+   
+   ```
+
+   
+
+7. 查看修改内容
+
+   `git status`
+
+8. 查看文件内变动的内容
+
+   `git diff`
+
+9. 撤销未提交的修改,只能撤销还没有执行过add命令的文件
+
+   ```kotlin
+   git checkout app/src/main/java/com/example/playvideotest/MainActivity.kt
+   ```
+
+   已经执行过add命令的，通过reset命令
+
+   ```kotlin
+   git reset HEAD app/src/main/java/com/example/playvideotest/MainActivity.kt
+   ```
+
+10. 查看历史提交记录
+
+    
+
+    `git log`
+
+    查看具体某一条记录，通过执行id
+
+    
+
+    `git log e09eeec7fb75fdafafe01753fbc7c0cd94c86003`
+
+    ![image-20221122104512958](C:\Users\dpzxka\AppData\Roaming\Typora\typora-user-images\image-20221122104512958.png)
+
+    查看近几次提交
+
+    `git log -l`
+
+11. 
