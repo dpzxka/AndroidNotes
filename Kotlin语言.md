@@ -30,6 +30,109 @@ val a:Int = 10
 
 > 永远优 先使用val来声明一个变量，而当val没有办法满足你的需求时再使用var。
 
+
+
+### 数组
+
+#### 1、对象数组
+
+- 使用arrayOf函数和指定数据元素创建数组
+
+  ```kotlin
+  //java写法
+  String[] params1 = {"one","two","three"}
+  
+  //kotlin下发
+  val params1 = arrayOf("one","two","three")
+  ```
+
+- 使用arrayOfNulls函数创建一个指定大小的并初始化每个元素为null的数组
+
+  ```kotlin
+  //java写法
+  String[] params2 = new String[12]
+  
+  //kotlin写法
+  val params2 = arrayOfNulls<String>(12)
+  ```
+
+  
+
+- Array构造方法指定数组大小和一个生成元素的lambda表达式
+
+  ```kotlin
+  //kotlin写法
+  val params3 = Array<String>(3){ i -> "Str" +i}
+  
+  //或者
+  val params3 = Array(3){"Str$it"}
+  ```
+
+  
+
+#### 2、基本数据类型数组
+
+```kotlin
+//字符串String的数组
+val arrStr = arrayOf("Hello","Kotlin")
+val arrStr2:Array<String> = arrayOf("Hello","Kotlin")
+
+//整形Int的数组
+val arrInt = arrayOf(1,2,3)
+val arrInt2:IntArray = intArrayOf(1,2,3)
+
+//字符Char的数组
+val arrChar = arrayOf('A','B','C')
+val arrChar2:CharArray = charArrayOf('A','B','C')
+
+//可以放任意基本类型
+val arr = arrayOf(1,'B',"你好"，18f,20L,true)
+
+//创建指定大小的String数组
+val arr2 = arrayOfNulls<String>(6)
+arr2.set(0,"java")
+arr2[1] = "kotlin"
+
+//创建指定大小的Double数组
+val arr2Double = arrayOfNulls<Double>(5)
+```
+
+#### 3、数组遍历
+
+```kotlin
+for(char in charyArray){
+	println(char)
+}
+```
+
+#### 4、数组转换字符串
+
+```kotlin
+charyArray.joinToString()
+//替换掉分隔符
+charyArray.joinTOString("")
+```
+
+#### 5、数组转换成集合
+
+```kotlin
+charyArray.toList
+```
+
+#### 6、返回包含指定索引范围内索引处的元素的列表
+
+```kotlin
+intArray.slice(1..3)
+```
+
+#### 7、空数组
+
+```kotlin
+val empt = emptyArray<Int>()
+```
+
+
+
 ### 函数
 
 > 函 数和方法就是同一个概念，这两种叫法都是从英文翻译过来的，函数翻译自function，方法翻 译自method，它们并没有什么区别，只是不同语言的叫法习惯不一样而已。
@@ -396,7 +499,7 @@ fun arrayListTest3(){
 
 Set集合，不可以存放重复元素，存放多个相同元素，只会保留其中一份。
 
-```
+```kotlin
 fun setTest1(){
     val set = setOf<String>("Apple","Banana","Orange","Pear","Grape")
     for (fruit in set){
@@ -1248,7 +1351,7 @@ val values1 = cvOf("name" to "Game of Thrones","author" to "George Martin","page
 
 #### 1、泛型
 
-> 泛型。在一般的编程模式下，需要给任何一个变量指定一个具体的类型，而泛型允许在不指定具体类型的情况下进行编程，这样编写出来的代码将会拥有更好 的扩展性
+> 泛型。在一般的编程模式下，需要给任何一个变量指定一个具体的类型，而泛型允许在不指定具体类型的情况下进行编程，这样编写出来的代码将会拥有更好的扩展性
 
 **定义泛型：**
 
@@ -1442,3 +1545,8 @@ if("Hello Kotlin" beginsWith "Hello"){
     //处理具体的逻辑
 }
 ```
+
+### 10、泛型
+
+#### 1、泛型实化
+
