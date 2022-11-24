@@ -1861,3 +1861,16 @@ suspend fun <T> Call<T>.await():T{
 ```
 
 首先await()函数是一个挂起函数，然后声明了一个泛型T，并将await()函数定义成了Call的扩展函数，这样所有返回值是Call类型的Retrofit网络请求接口就都可以直接调用await()函数了。 接着，await()函数中使用了suspendCoroutine函数来挂起当前协程，并且由于扩展函数的原因，我们现在拥有了Call对象的上下文，那么这里就可以直接调用enqueue()方法让Retrofit发起网络请求。接下来，使用同样的方式对Retrofit响应的数据或者网络请求失败的情况进行处理。另外还有一点需要注意，在onResponse()回调当中，调用body()方法解析出来的对象是可能为空的。如果为空的话，这里的做法是手动抛出一个异常.
+
+调用：
+
+```kotlin
+suspend fun getAppData(){
+    try {
+        val appList = ServiceCreator.create2<AppService>().getAppData().await()
+        //对服务器响应的数据进行处理
+    } catch (e:Exception){
+        //对异常情况处理
+    }
+}
+```
