@@ -1631,4 +1631,233 @@ delay()函数,可以让当前协程延迟指定 的时间后运行。
    }
    ```
 
-4. d 
+   kolint中提供suspend关键字，将任意函数声明成挂起函数，挂起函数之间可以相互调用。为了解决提取launch函数中部分代码，协程作用域失效的问题
+
+   ```kotlin
+   /**
+    * suspend关键字只能将一个函数声明成挂起函数，是无法给它提供协程作用域的
+    * 无法在printDot函数中调用launch函数，launch函数必须在协程作用域才可以调用。
+    * */
+   suspend fun printDot(){
+       println(".")
+       delay(1000)
+   }
+   
+   /**
+    * coroutineScope函数也是一个挂起函数，因此可以在任何其他挂起函数中调用
+    * 特点，会继承外部的协程作用域并创建一个子协程
+    */
+   suspend fun printDot2() = coroutineScope {
+       launch {
+           println(".")
+           delay(1000)
+       }
+   }
+   ```
+
+coroutineScope函数和runBlocking函数
+
+`相同点`：它可以保证其作用域内的所有代码和子协程在全部执行完之前，外部的协程会一直被挂起.
+
+`不同点`：coroutineScope函数只会阻塞当前协程，既不影响其他协程，也不影响任何线程，因此是不 会造成任何性能上的问题的。而runBlocking函数由于会挂起外部线程，如果你恰好又在主线 程中当中调用它的话，那么就有可能会导致界面卡死的情况
+
+#### 2、作用域构造器
+
+> GlobalScope.launch、runBlocking、launch、 coroutineScope这几种作用域构建器，它们都可以用于创建一个新的协程作用域。
+>
+> 不过 GlobalScope.launch和runBlocking函数是可以在任意地方调用的，coroutineScope函数可以在协程作用域或挂起函数中调用，而launch函数只能在协程作用域中调用
+
+协程取消：？不管是GlobalScope.launch函数还是launch函数，它们都会返回 一个Job对象，只需要调用Job对象的cancel()方法就可以取消协程了
+
+```kotlin
+val job = GlobalScope.launch {
+ 	// 处理具体的逻辑
+}
+job.cancel()
+
+```
+
+实际项目用法：
+
+```kotlin
+val job = Job()
+val scope = CoroutineScope(job)//CoroutineScopes是函数，不是类，返回CoroutineScope对象
+scope.launch {
+ // 处理具体的逻辑
+}
+//CoroutineScope的launch函数所创建的协程，都会被关联在Job对象的作用域下面。这样只需要调用一次cancel()方法，就可以将同一作用域内的所有协程全部取消
+job.cancel()
+
+```
+
+
+
+##### Async函数
+
+launch函数可以创建一个新的协程，只能用于执行一段逻辑，不能获取执行的结果，返回值永远是一个Job对象，可以使用async函数，创建一个协程并获取他的执行结果。
+
+async函数必须在协程作用域当中才能调用，它会创建一个新的子协程并返回一个Deferred对 象，如果我们想要获取async函数代码块的执行结果，只需要调用Deferred对象的await()方法。
+
+```kotlin
+fun main(){
+    runBlocking {
+        val result = async {
+            8+8
+        }.await()
+        println(result)
+    }
+}
+```
+
+在调用了async函数之后，代码块中的代码就会立刻开始执行。当调用await()方法时，如果代码块中的代码还没执行完，那么await()方法 会将当前协程阻塞住，直到可以获得async函数的执行结果.
+
+```kotlin
+/*连续执行*/
+fun methodOne2() {
+    val start = System.currentTimeMillis()
+    runBlocking {
+        val result = async {
+            //delay(1000)
+            8+8
+        }.await()
+        val result2 = async {
+            //delay(1000)
+            8+1
+        }.await()
+        println("result is ${result + result2}")
+        val end  = System.currentTimeMillis()
+        println("cost ${end - start}")
+    }
+}
+
+/*并行执行*/
+fun methodOne3() {
+    val start = System.currentTimeMillis()
+    runBlocking {
+        val result = async {
+            //delay(1000)
+            8+8
+        }
+        val result2 = async {
+            //delay(1000)
+            8+1
+        }
+        println("result is ${result.await() + result2.await()}")
+        val end  = System.currentTimeMillis()
+        println("cost ${end - start}")
+    }
+}
+```
+
+##### withContext函数
+
+withContext函数是一个挂起函数，async函数的一种简化版写法：
+
+```kotlin
+fun main(){
+    runBlocking{
+       val result = withContext(Dispatchers.Default){
+           5+5
+       }
+        println(result)
+    }
+}
+```
+
+调用withContext()函数之后，会立即执行代码块中的代码，同时将外部协程挂起。当代码块中的代码全部执行完之后，会将最后一行的执行结果作为 withContext()函数的返回值返回
+
+withContext函数需要指定一个线程参数，主要三种类型：
+
+- Dispatchers.Default:表示会使用一种默认低并发的线程策略，当 你要执行的代码属于计算密集型任务时，开启过高的并发反而可能会影响任务的运行效率，此 时就可以使用Dispatchers.Default
+- Dispatchers.IO:表示会使用一种较高并发的线程策略，当你要执行的代码大多数时间是在阻塞和等待中，比如说执行网络请求时，为了能够支持更高的并发数量，此时就可以使用Dispatchers.IO
+- Dispatchers.Main:表示不会开启 子线程，而是在Android主线程中执行代码，但是这个值只能在Android项目中使用，纯Kotlin 程序使用这种类型的线程参数会出现错误
+
+#### 3、优化回调方法
+
+原始写法：
+
+```kotlin
+HttpUtil.sendHttpRequest(address, object : HttpCallbackListener {
+ 	override fun onFinish(response: String) {
+		 // 得到服务器返回的具体内容
+	 }
+	 override fun onError(e: Exception) {
+ 		// 在这里对异常情况进行处理
+ 	}
+})
+```
+
+suspendCoroutine函数必须在协程作用域或挂起函数中才能调用，它接收一个Lambda表达 式参数，主要作用是将当前协程立即挂起，然后在一个普通的线程中执行Lambda表达式中的代码。Lambda表达式的参数列表上会传入一个Continuation参数，调用它的resume()方法或resumeWithException()可以让协程恢复执行。
+
+```kotlin
+suspend fun request(address: String):String{
+    return suspendCoroutine { 
+        HttpUtil.sendHttpRequest(address,object :HttpCallbackListener{
+            override fun onFinish(response: String) {
+                it.resume(response)
+            }
+
+            override fun onError(e: Exception) {
+                it.resumeWithException(e)
+            }
+
+        })
+    }
+}
+```
+
+如果请求成功就调用Continuation的resume()方法恢复被挂起的协程，并传入服务器响应的数据，该值会成为suspendCoroutine函数的返回值。如果请求失败，就调用Continuation的resumeWithException()恢复被挂起的协程，并传入具体的异常原因
+
+调用：
+
+```kotlin
+runBlocking { sendRequestWithHttpURLConnection() }
+
+suspend fun getBaiduResponse(){
+    try {
+        val response = HttpUtil.request("https://www.baidu.com/")
+        showResponse(response)
+    }catch (e:Exception){
+        e.printStackTrace()
+    }
+}
+```
+
+
+
+retrofit原始写法
+
+```kotlin
+val appService = ServiceCreator.create<AppService>()
+appService.getAppData().enqueue(object : Callback<List<App>> {
+ 	override fun onResponse(call: Call<List<App>>, response: Response<List<App>>) {
+ 		// 得到服务器返回的数据
+ 	}
+ 	override fun onFailure(call: Call<List<App>>, t: Throwable) {
+ 		// 在这里对异常情况进行处理
+ 	}
+})
+```
+
+修改：
+
+```kotlin
+suspend fun <T> Call<T>.await():T{
+        return suspendCoroutine {
+            enqueue(object :Callback<T>{
+                override fun onResponse(call: Call<T>, response: Response<T>) {
+                    val body = response.body()
+                    if (body!=null) it.resume(body)
+                    else it.resumeWithException(java.lang.RuntimeException("response body is null"))
+                }
+
+                override fun onFailure(call: Call<T>, t: Throwable) {
+                    it.resumeWithException(t)
+                }
+
+            })
+        }
+    }
+```
+
+首先await()函数是一个挂起函数，然后声明了一个泛型T，并将await()函数定义成了Call的扩展函数，这样所有返回值是Call类型的Retrofit网络请求接口就都可以直接调用await()函数了。 接着，await()函数中使用了suspendCoroutine函数来挂起当前协程，并且由于扩展函数的原因，我们现在拥有了Call对象的上下文，那么这里就可以直接调用enqueue()方法让Retrofit发起网络请求。接下来，使用同样的方式对Retrofit响应的数据或者网络请求失败的情况进行处理。另外还有一点需要注意，在onResponse()回调当中，调用body()方法解析出来的对象是可能为空的。如果为空的话，这里的做法是手动抛出一个异常.
