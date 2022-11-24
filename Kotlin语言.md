@@ -1550,3 +1550,85 @@ if("Hello Kotlin" beginsWith "Hello"){
 
 #### 1、泛型实化
 
+### 11、协程
+
+> 类似线程，轻量级的线程。在单线程模式下模拟多线程编程的效果，代码执行时的挂起与恢复完 全是由编程语言来控制的，和操作系统无关
+
+#### 1、基本用法
+
+添加依赖：
+
+```groovy
+implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
+implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'/*Android项目使用*/
+```
+
+##### 创建协程的方式：
+
+1. 第一种方式：Global.launch函数
+
+```kotlin
+fun main(){
+    /** Global.launch函数，可以创建一个协程的作用域，传递给launch函数的代码块（lambda表达式）就是在协程中允许
+     * Global,launch函数每次创建都是一个顶层协程，这种协程当应用程序允许结束时也会跟着一起结束。
+     * */
+    GlobalScope.launch {
+        println("codes run in coroutine scope")
+//        delay(1500)
+        for (i in 1..1000){
+            println(i)
+        }
+    }
+    /*延迟程序结束时间，打印顶层协程内容*/
+    Thread.sleep(1)
+}
+```
+
+delay()函数,可以让当前协程延迟指定 的时间后运行。
+
+> delay函数：是一个非阻塞时挂起的函数，只会挂起当前协程，不会影响晴天协程的运行。只能在协程的作用域或其他挂起函数中调用
+>
+> Thread.sleep()方法：阻塞当前的线程，运行在该线程下所有的协程都会阻塞。
+
+2. 第二种方式：runBlocking函数
+
+   ```kotlin
+   /**
+    * runBlocking函数同样会创建一个协程的作用域，但可以保证作用域内所有代码和子协程没有全部执行完之前
+    * 会一直阻塞当前线程，只能在测试环境使用，正式环境容易出性能问题*/
+   fun methodTwo(){
+       runBlocking {
+           println("codes run in coroutine scope")
+           delay(1200)
+           println("codes run in coroutine scope finished")
+       }
+   }
+   ```
+
+3. 第三种方式：创建多个协程，launch函数
+
+   子协程在同一个线程写，会交叉运行，类似多线程并发运行，由系统语言巨顶如何在多个协程之间调用，调度过程中不需要操作系统参与，效率很高。
+
+   ```kotlin
+   /**
+    * 创建多个协程
+    * launch函数必须在协程的作用域中才能调用，其次它会在当前协程的作用域下船舰子协程。
+    * 子协程特点：如果外层作用域的协程结束，该作用域下的所有子协程也会一同结束。
+    * GlobalScope.launch函数创建的永远是顶层协程*/
+   fun methodThree(){
+       runBlocking {
+           launch {
+               println("launch1")
+               delay(1000)
+               println("launch1 finished")
+           }
+           launch {
+               println("launch2")
+               delay(100)
+               println("launch2 finished")
+           }
+       }
+   }
+   ```
+
+4. d 
