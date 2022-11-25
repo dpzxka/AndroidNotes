@@ -1874,3 +1874,109 @@ suspend fun getAppData(){
     }
 }
 ```
+
+### 12、工具
+
+#### 1、求N个同类型数的最大最小值
+
+> ava中规定，所有类型的数字都是可比较的，因此必须实现Comparable接口，这个规则在 Kotlin中也同样成立
+
+```kotlin
+/*vararg接受同类型参数*/
+fun max(vararg  nums:Int):Int{
+    var maxNum = Int.MIN_VALUE
+    for (num in nums){
+        maxNum = kotlin.math.max(maxNum,num)
+    }
+    return maxNum
+}
+
+/*任意类型比较*/
+fun <T:Comparable<T>> max2(vararg nums:T):T{
+    if (nums.isEmpty()) throw java.lang.RuntimeException("params can not be empty")
+    var maxNum = nums[0]
+    for (num in nums){
+        if (num>maxNum){
+            maxNum = num
+        }
+    }
+    return maxNum
+}
+```
+
+#### 2、简化Toast
+
+```kotlin
+fun String.showToast(context: Context){
+    Toast.makeText(context,this,Toast.LENGTH_SHORT).show()
+}
+fun Int.showToast(context: Context){
+    Toast.makeText(context,this,Toast.LENGTH_SHORT).show()
+}
+```
+
+
+
+弹出strings.xml字符串资源：`R.string.app_name.showToast(context)`
+
+定义弹框时长：默认LENGTH_SHORT
+
+```
+fun String.showToast(context: Context,duration:Int = Toast.LENGTH_SHORT){
+    Toast.makeText(context,this,Toast.LENGTH_SHORT).show()
+}
+fun Int.showToast(context: Context,duration:Int = Toast.LENGTH_SHORT){
+    Toast.makeText(context,this,Toast.LENGTH_SHORT).show()
+}
+```
+
+
+
+#### 3、Snackbar
+
+```kotlin
+fun View.showSnackbar(text:String,duration: Int=Snackbar.LENGTH_SHORT){
+    Snackbar.make(this,text,duration).show()
+}
+
+fun View.showSnackbar(resId: Int, duration: Int = Snackbar.LENGTH_SHORT) {
+    Snackbar.make(this, resId, duration).show()
+}
+```
+
+调用：
+
+`view.showSnackbar("This is Snackbar")`
+
+
+
+```kotlin
+fun View.showSnackbar(text:String, actionText: String? = null, duration: Int = Snackbar.LENGTH_SHORT, block: (() -> Unit)? = null) {
+    val snackbar = Snackbar.make(this, text, duration)
+    if (actionText != null && block != null) {
+        snackbar.setAction(actionText) {
+            block()
+        }
+    }
+    snackbar.show()
+}
+
+fun View.showSnackbar(resId: Int,  actionResId: Int? = null, duration: Int = Snackbar.LENGTH_SHORT, block: (() -> Unit)? = null) {
+    val snackbar = Snackbar.make(this, resId, duration)
+    if (actionResId != null && block != null) {
+        snackbar.setAction(actionResId) {
+            block()
+        }
+    }
+    snackbar.show()
+}
+```
+
+调用：
+
+```kotlin
+view.showSnackbar("This is Snackbar", "Action") {
+ 	// 处理具体的逻辑
+}
+```
+
