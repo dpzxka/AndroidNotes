@@ -36,8 +36,6 @@
       git add build.gradle
       ```
 
-      
-
    2. 提交代码
 
    3. ```nginx
@@ -58,8 +56,6 @@
    /src/androidTest
    
    ```
-
-   
 
 7. 查看修改内容
 
@@ -83,13 +79,9 @@
 
 10. 查看历史提交记录
 
-    
-
     `git log`
 
     查看具体某一条记录，通过执行id
-
-    
 
     `git log e09eeec7fb75fdafafe01753fbc7c0cd94c86003`
 
@@ -99,4 +91,60 @@
 
     `git log -l`
 
-11. 
+11. 分支处理
+
+    > 新项目处理：
+    >
+    > git init
+    >
+    > git add .
+    >
+    > git commit -m "First Commit"
+
+    查看当前分支：
+
+    `git branch`
+
+    创建分支：
+
+    `git branch version1.0`
+
+    切换分支
+
+    `git checkout version1.0`
+
+    分支修改问题合并,把`version1.0`修改合并到`master`
+
+    `git checkout master`
+
+    `git marge version1.0`
+
+    删除分支：
+
+    git branch -D version1.0
+
+12. 远程版本
+
+    下载远程版本库：
+
+    `git clone https://github.com/example/test.git`
+
+    提交远程版本库：origin部分指远程版本库git地址，master指定同步到哪一个分支。
+
+    `git push origin master`
+
+    同步远程版本库修改到本地：
+
+    `git fetch origin master`:同步下来的代码不会合并到具体的分支，会默认保存在origin/master分支上
+
+    查看远程版本库修改：
+
+    `git diff origin/master`
+
+    合并远程到本地主干分支：
+
+    `git merge origin/master`
+
+    通过pull命令：
+
+    `git pull origin master`等同于fetch和merge命令合并。
