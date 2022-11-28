@@ -350,3 +350,97 @@ Transformations的map()方法来对LiveData的数据类型进行转换。map()�
 #### switchMap
 
 LiveData对象的有可能ViewModel中的某个LiveData对象 是调用另外的方法获取的。
+
+如单例类：根据传入的参数，从服务器获取或者数据库查到对应的User对象，每次见传入的userId用作用户名来创建一个新的User对象，每次调用 getUser()方法都会返回一个新的LiveData实例。
+
+```kotlin
+object Repository {
+    fun getUser(userId: String): LiveData<User> {
+        val liveData = MutableLiveData<User>()
+        liveData.value = User(userId, userId, 0)
+        return liveData
+    }
+}
+```
+
+在对应的ViewModel中定义一个getUser方法，用来调用repositroy中的getUser方法来获取LiveData对象
+
+[switchMap应用场景]()：
+
+如果ViewModel中的某个LiveData对象是调用另外的方法获取的，那么我们就可以借助 switchMap()方法，将这个LiveData对象转换成另外一个可观察的LiveData对象
+
+修改MainVewModel：
+
+```kotlin
+class MainViewModel(countReserved:Int) : ViewModel() {
+
+    val counter:LiveData<Int> get() = _counter
+
+    private var _counter = MutableLiveData<Int>()
+
+    init {
+        _counter.value = countReserved
+    }
+
+    //定义一个新的userIdLiveData对象，用来观察userId数据变化
+    private val userIdLiveData = MutableLiveData<String>()
+    
+    //调用switchMap方法，用来对另一个可观察的LiveData对象进行转换
+    //参1：新增的userIdLiveData，switchMap方法会对它进行观察，参2：一个转换函数，这个转换函数返回的必须是一个LiveData对象。
+    val user:LiveData<User> = Transformations.switchMap(userIdLiveData){ userId ->
+        Repository.getUser(userId)
+    }
+
+    fun getUser(userId:String){
+        userIdLiveData.value = userId
+    }
+    /*fun getUser(userId:String):LiveData<User>{
+        return Repository.getUser(userId)
+    }*/
+}
+```
+
+> 外部调用MainViewModel的get方法来获取用户数据时，并不会发起任何请求或函数调用，只会将传入的数据设置到userIdLiveData中。
+>
+> 一旦userLiveData的数据发生变化，观察的userIdLiveData的switchMap方法就会执行，调用编写的转换函数。
+>
+> 在转换函数中调用Repository.getUSer方法获取真正的数据。同时switchMap方法会将Repositroy.getUser方法返回的LiveData对象转换成一个可观察的LiveData对象，在Activity中，只需要观察这个对象即可。
+
+```kotlin
+override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    binding = ActivityViewModelDemoBinding.inflate(layoutInflater)
+    setContentView(binding.root)
+
+    binding.getUserBtn.setOnClickListener {
+        val userId = (0..10000).random().toString()
+        //将数据设置到userIdLiveData中
+        viewModel.getUser(userId)
+    }
+    viewModel.user.observe(this){
+        binding.infoText.text = it.firstName
+    }
+}
+```
+
+[注意]()
+
+如果ViewModle中某个获取数据的方法没有参数，创建一个空的LiveData对象，
+
+```kotlin
+//方法没有参数情况下,定义一个不指定具体数据类型的LiveData
+private val refreshLiveData = MutableLiveData<Any?>()
+val refreshResult = Transformations.switchMap(refreshLiveData){
+    Repository.refresh()
+}
+/*  LiveData内部不会判断即将设置的数据和原有数据是否相同，只要调用了setValue()或postValue()方法，
+    就一定会触发数据变化事件
+*/
+fun refresh(){
+    refreshLiveData.value = refreshLiveData.value
+}
+```
+
+> LiveData之所以能够成为Activity与ViewModel之间通信的桥梁，并且还不会有内存泄漏的风险，靠的就是Lifecycles组件。LiveData在内部使用了Lifecycles组件来自我感知生命周期的变化，从而可以在Activity销毁的时候及时释放引用，避免产生内存泄漏的问题
+>
+> 如果在Activity处于不可见状态的时候，LiveData发生了多次数据变化，当 Activity恢复可见状态时，只有最新的那份数据才会通知给观察者，前面的数据在这种情况下相 当于已经过期了，会被直接丢弃。
