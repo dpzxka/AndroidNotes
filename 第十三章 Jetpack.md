@@ -748,3 +748,156 @@ abstract class AppDatabase:RoomDatabase() {
     }
 }
 ```
+
+## 五、WorkManager
+
+
+
+> WorkManager很适合用于处理一些要求定时执行的任务，它可以根据操作系统的版本自动选择底层是使用AlarmManager实现还是JobScheduler实现，从而降低使用成本。另外， 它还支持周期性任务、链式任务处理等功能，是一个非常强大的工具.
+>
+> WorkManager和Service并不相同，也没有直接的联系。 Service是Android系统的四大组件之一，它在没有被销毁的情况下是一直保持在后台运行的。 而WorkManager只是一个处理定时任务的工具，它可以保证即使在应用退出甚至手机重启的情况下，之前注册的任务仍然将会得到执行，因此WorkManager很适合用于执行一些定期和服务器进行交互的任务，比如周期性地同步数据。
+
+### 1、基本用法
+
+添加依赖：
+
+```groovy
+/*workManager*/
+implementation "androidx.work:work-runtime:2.7.1"
+```
+
+**WorkManager的基本用法：**
+
+1. 定义一个后台任务，并实现具体的任务逻辑
+2. 配置该后台任务的运行条件和约束信息，并构建后台任务请求
+3. 将该后台任务请求传入WorkManager的enqueue()方法中，系统会在合适的时间运行
+
+#### 1、定义后台任务
+
+每一个后台任务都必须继承自Worker类，并调用它唯一的构造函数。然后重写父类中的doWork()方法，在这个方法中编写具体的后台任务逻辑即可
+
+doWork()方法不会运行在主线程当中，doWork()方法要求返回一个Result对象，用于表示任务的运行结果，成功就返回Result.success()，失败就返回Result.failure()，Result.retry()方法，它其实也代表着失败，结合WorkRequest.Builder的setBackoffCriteria()方法来重新执行任务
+
+```kotlin
+class SimpleWorker(context: Context,params:WorkerParameters) :Worker(context,params){
+    private val TAG = "SimpleWorker"
+
+    override fun doWork(): Result {
+        Log.d(TAG, "doWork: do work in SimpleWorker")
+        return Result.success()
+    }
+}
+```
+
+#### 2、配置该后台任务的运行条件和约束信息，并构建后台任务请求
+
+OneTimeWorkRequest.Builder是WorkRequest.Builder的子类，用于构建单次运行的后台任务请求。
+
+```kotlin
+val request = OneTimeWorkRequest.Builder(SimpleWorker::class.java).build()
+```
+
+OneTimeWorkRequest.Builder是WorkRequest.Builder的子类，用于构建单次运行的后台任务请求。
+
+WorkRequest.Builder还有另外一个子类PeriodicWorkRequest.Builder，可用于构建周期性运行的后台任务请求，但是为了降低设备性能消耗,PeriodicWorkRequest.Builder构造函数中传入的运行周期间隔不能短于15分钟
+
+```kotlin
+val request = PeriodicWorkRequest.Builder(SimpleWorker::class.java, 15, TimeUnit.MINUTES).build()
+```
+
+#### 3、传入请求
+
+系统就会在合适的时间去运行。没有指定任何约束，后台任务基本上会在点击按钮之后立刻运行
+
+```kotlin
+WorkManager.getInstance(context).enqueue(request)
+```
+
+### 2、WorkManager处理复杂的任务
+
+延迟执行定时任务
+
+```kotlin
+//延迟执行任务，延迟5分钟后运行
+val request2 = OneTimeWorkRequest.Builder(SimpleWorker::class.java)
+    .setInitialDelay(5,TimeUnit.MINUTES)
+    .build()
+```
+
+给后台任务请求添加标签
+
+> 标签功能：可以通过标签来取消后台的任务请求。
+
+```kotlin
+val request2 = OneTimeWorkRequest.Builder(SimpleWorker::class.java)
+    .setInitialDelay(5,TimeUnit.MINUTES)
+    .addTag("simple")
+    .build()
+
+//有标签之后，可以通过后台取消任务
+WorkManager.getInstance(this).cancelAllWorkByTag("simple")
+```
+
+没有标签也可以通过id来取消后台任务
+
+```kotlin
+//没有标签通过Id来取消后台任务
+WorkManager.getInstance(this).cancelWorkById(request.id)
+```
+
+一次性取消所有的后台任务请求：
+
+```kotlin
+//取消所有的后台任务请求
+WorkManager.getInstance(this).cancelAllWork()
+```
+
+如果后台任务返回了result.retry(),可以结合setBackoffCriteria方法重新执行任务。
+
+```kotlin
+val request3 = OneTimeWorkRequest.Builder(SimpleWorker::class.java)
+                .setInitialDelay(5,TimeUnit.MINUTES)//延迟五分钟过后执行
+                    /*setBackoffCriteria
+                    * 参1：于指定如果任务再次执行失败，下次重试 的时间应该以什么样的形式延迟。
+                    *   LINEAR:代表下次重试时间以线性的方式延迟
+                    *   EXPONENTIAL，代表下次重试时间以指数的方式延迟
+                    * 参2，参3：用于指定在多久之后重新执行任务，时间最短不能少于10秒钟
+                    * */
+                .setBackoffCriteria(BackoffPolicy.LINEAR,10,TimeUnit.SECONDS)
+                .build()
+```
+
+> doWork()方法中返回 Result.success()和Result.failure()又有什么作用?
+>
+> 用于通知任务运行结果，
+>
+> ```kotlin
+> WorkManager.getInstance(this).getWorkInfoByIdLiveData(request.id)
+>     .observe(this){ workInfo ->
+>         if (workInfo.state == WorkInfo.State.SUCCEEDED){
+>             Log.d("TAG", "onCreate: do wrok succeeded")
+>         } else if (workInfo.state == WorkInfo.State.FAILED) {
+>             Log.d("TAG", "onCreate: do work failed")
+>         }
+>     }
+> ```
+>
+> getWorkInfoByIdLiveData()方法，并传入后台任务请求的id，会返回一个 LiveData对象。然后我们就可以调用LiveData对象的observe()方法来观察数据变化了， 以此监听后台任务的运行结果(也可以getWorkInfosByTagLiveData)
+
+链式任务
+
+假设定义3个独立的后台任务：同步数据、压缩数据和上传数据
+
+```kotlin
+val sync = ...
+val compress = ...
+val upload = ...
+WorkManager.getInstance(this)
+ .beginWith(sync)
+ .then(compress)
+ .then(upload)
+ .enqueue()
+
+```
+
+WorkManager要求，必须在前一个后台任务运行成功之后，下一个后台任务才会运行。如果某个后台任务运行失败，或者被取消了，那么接下来的后台任务就都得不到运行
