@@ -195,7 +195,7 @@ class MyObserver(val lifecyle:Lifecycle):LifecycleObserver {
 
 > 当获取的生命周期状态是CREATED的时候，说明onCreate()方法已经执行了，但 是onStart()方法还没有执行。当获取的生命周期状态是STARTED的时候，说明onStart() 方法已经执行了，但是onResume()方法还没有执行.
 
-## 三、LivwData
+## 三、LiveData
 
 是Jetpack提供的一种响应式编程组件，它可以包含任何类型的数据，并在数据发生 变化的时候通知给观察者。
 
@@ -444,3 +444,307 @@ fun refresh(){
 > LiveData之所以能够成为Activity与ViewModel之间通信的桥梁，并且还不会有内存泄漏的风险，靠的就是Lifecycles组件。LiveData在内部使用了Lifecycles组件来自我感知生命周期的变化，从而可以在Activity销毁的时候及时释放引用，避免产生内存泄漏的问题
 >
 > 如果在Activity处于不可见状态的时候，LiveData发生了多次数据变化，当 Activity恢复可见状态时，只有最新的那份数据才会通知给观察者，前面的数据在这种情况下相 当于已经过期了，会被直接丢弃。
+
+## 四、Room
+
+> ORM（Object Relational Mapping）也叫对象关系映射。编程语言是面向对象语言，而使用的数据库则是关系型数据库，将面向对象的语言和面向关系的数据库之 间建立一种映射关系，称为ORM
+
+### 1、增删改查
+
+ROOM主要有三部分组成：
+
+Entity：用于定义封装实际数据的实体类，每个实体类都会在数据库中有一张对应的表，并且表中的列是根据实体类中的字段自动生成的
+
+Dao：Dao是数据访问对象的意思，通常会在这里对数据库的各项操作进行封装，在实际编程的时候，逻辑层就不需要和底层数据库打交道了，直接和Dao层进行交互即可
+
+Database：用于定义数据库中的关键信息，包括数据库的版本号、包含哪些实体类以及提供Dao层的访问实例。
+
+添加依赖：
+
+> 由于于Room会根据我们在项目中声明的注解来动态生成代码，因此这里一定要使用kapt引入Room的编译时注解库，而启用编译时注解功能则一定要先添加kotlin-kapt插件。kapt只能在kotlin项目中使用，java中使用annotationProcessor
+
+```groovy
+plugins {
+ 	...
+    id 'kotlin-kapt'
+}
+
+dependencies{
+	...
+    /*room ORM框架*/
+	implementation "androidx.room:room-runtime:2.4.2"
+	kapt "androidx.room:room-compiler:2.4.2"    
+}
+
+```
+
+**基本用法：**
+
+1、定义entity层实体类，每个实体类都添加一个id字段，并将这个字段设置为主键。
+
+```kotlin
+/**
+ * Entity 声明成一个实体类*/
+@Entity
+data class Users(var firstName:String,val lastName:String,var age:Int) {
+
+    /*设置ID字段，将此字段设置为主键。autoGenerate 指定为true，使得主键的值自动生成*/
+    @PrimaryKey(autoGenerate = true)
+    var id:Long = 0
+}
+```
+
+2、定义Dao层，所有访问数据库的操作都是在这里封装的。而Dao要做的事情就是覆盖所有的业务需求，使得业务方永远只需要与Dao 层进行交互，而不必和底层的数据库打交道
+
+```kotlin
+//添加Dao注解，Room才可以识别成Dao。根据业务需求对各种数据库操作进行封装。
+@Dao
+interface UserDao {
+    //表示会将参数中传入的User对象插入数据库中，插入完成后还会将自动生成的主键id值返回
+    @Insert
+    fun insertUser(users: Users):Long
+
+    //将参数中传入的User对象更新到数据库当中
+    @Update
+    fun updateUser(newUsers: Users)
+
+    //从数据库中查询数据，或者使用非实体类参数来增删改数据，那么就必须编写SQL语句
+    @Query("select * from Users")
+    fun loadAllUsers():List<Users>
+
+    //将方法中传入的参数指定到SQL语句当中
+    @Query("select * from Users where age > :age")
+    fun loadUsersOlderThan(age:Int):List<Users>
+    
+    //会将参数传入的User对象从数据库中删除
+    @Delete
+    fun deleteUser(users:Users)
+
+    //如果是使用非实体类参数来增删改数据，那么也要编写SQL语句，而且必须使用用@Query注解
+    @Query("delete from Users where lastName = :lastName")
+    fun deleteUsersByLastName(lastName:String):Int
+}
+```
+
+3、定义Database层：定义数据库版本号，包含哪些实体类，以及提供Dao层的访问实例
+
+AppDatabase类必须继承自RoomDatabase类，并且一定要使用abstract关键字将它声明成抽象类，然后提供相应的抽象方法，用于获取之前编写的Dao的实例,只需要进行方法声明即可，具体是心啊由Room底层自动完成。
+
+```kotlin
+@Database(version = 1, entities = [Users::class])
+abstract class AppDatabase:RoomDatabase() {
+    abstract fun userDao() : UserDao
+
+    companion object {
+        private var instance: AppDatabase? = null
+
+        fun getDatabase(context:Context):AppDatabase{
+            instance?.let {
+                return it
+            }
+            //构建databaseBuilder实例，参1：applicationContext，不能用普通context会内存泄露
+            //参2：AppDatabase的Class类型，参3：数据库名
+            return Room.databaseBuilder(context.applicationContext,AppDatabase::class.java,"app_database")
+                .build().apply {
+                    instance = this
+                }
+        }
+    }
+}
+```
+
+
+
+Activity中使用：
+
+```kotlin
+class RoomDemoActivity : AppCompatActivity() {
+    companion object{
+        private const val TAG = "RoomDemoActivity"
+    }
+    lateinit var binding:ActivityRoomDemoBinding
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityRoomDemoBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        val userDao = AppDatabase.getDatabase(this).userDao()
+        val user1 = Users("Tom","Brady",40)
+        val user2 = Users("Tom","Hanks",90)
+        binding.addDataBtn.setOnClickListener {
+            thread {
+                user1.id = userDao.insertUser(user1)
+                user2.id = userDao.insertUser(user2)
+            }
+        }
+        binding.updateDataBtn.setOnClickListener {
+            thread {
+                user1.age = 42
+                userDao.updateUser(user1)
+            }
+        }
+        binding.deleteDataBtn.setOnClickListener {
+            thread {
+                userDao.deleteUsersByLastName("Hanks")
+            }
+        }
+        binding.queryDataBtn.setOnClickListener {
+            thread {
+                for (user in userDao.loadAllUsers()){
+                    Log.d(TAG, "onCreate: ${user.toString()}")
+                }
+            }
+        }
+    }
+}
+```
+
+> 由于数据库操作属于耗时操作，Room默认是不允许在主线程中进行数据库操作的，因此增删改查的功能都放到了子线程中。不过为了方便测试，Room还提供了一个更加简单的方法，如下所示：
+>
+> ```kotlin
+> Room.databaseBuilder(context.applicationContext, AppDatabase::class.java,"app_database")
+>  .allowMainThreadQueries()
+>  .build()
+> ```
+
+### 2、数据库升级
+
+> 数据库框架LitePal
+
+> 测试阶段：简单方法：只要数据库进行了升级，Room就会将当前的数据库销毁，然后再重新创建，副作用就是之前数据库中的所有数据就全部丢失了
+>
+> ```kotlin
+> Room.databaseBuilder(context.applicationContext, AppDatabase::class.java,"app_database")
+>  .fallbackToDestructiveMigration()
+>  .build()
+> ```
+
+#### 2.1 新增表
+
+新增Book实体类
+
+```kotlin
+@Entity
+data class Book(var name: String, var pages: Int) {
+
+    @PrimaryKey(autoGenerate = true)
+    var id: Long = 0
+}
+```
+
+新增BookDao接口
+
+```kotlin
+@Dao
+interface BookDao {
+
+    @Insert
+    fun insertBook(book: Book):Long
+
+    @Query("select * from Book")
+    fun loadAllBooks():List<Book>
+}
+```
+
+修改Appdatabase,升级数据库升级逻辑
+
+```kotlin
+/*数据库升级，新增Book表,将Book类添加到了实体类声明*/
+@Database(version = 2, entities = [Users::class, Book::class])
+abstract class AppDatabase:RoomDatabase() {
+    abstract fun userDao() : UserDao
+
+    //新增表
+    abstract fun bookDao():BookDao
+
+    companion object {
+
+        //升级
+        /**
+         * 参数(1,2)表示当数据库版本从1升级到2的时候就执行这个匿名类中的升级逻辑
+         * */
+        val MIGRATION_1_2= object :Migration(1,2){
+            override fun migrate(database: SupportSQLiteDatabase) {
+                /*Book表的建表语句必须和Book实体类中声明的结构完全一致，否则Room就会抛出异常*/
+                database.execSQL("create table Book (id integer primary key autoincrement not null," +
+                        "name text not null, pages integer not null)")
+            }
+        }
+
+        private var instance: AppDatabase? = null
+
+        fun getDatabase(context:Context):AppDatabase{
+            instance?.let {
+                return it
+            }
+            return Room.databaseBuilder(context.applicationContext,AppDatabase::class.java,"app_database")
+                .addMigrations(MIGRATION_1_2)
+                .build().apply {
+                    instance = this
+                }
+        }
+    }
+}
+```
+
+#### 2.2 表中新增列
+
+Book实体类新增author字段
+
+```kotlin
+@Entity
+data class Book(var name: String, var pages: Int,var author:String) {
+
+    @PrimaryKey(autoGenerate = true)
+    var id: Long = 0
+}
+```
+
+修改Appdatabase
+
+```kotlin
+/*数据库升级，新增Book表中的字段*/
+@Database(version = 3, entities = [Users::class, Book::class])
+abstract class AppDatabase:RoomDatabase() {
+    abstract fun userDao() : UserDao
+
+    //新增表
+    abstract fun bookDao():BookDao
+
+    companion object {
+
+        //升级
+        /**
+         * 参数(1,2)表示当数据库版本从1升级到2的时候就执行这个匿名类中的升级逻辑
+         * */
+        val MIGRATION_1_2= object :Migration(1,2){
+            override fun migrate(database: SupportSQLiteDatabase) {
+                /*Book表的建表语句必须和Book实体类中声明的结构完全一致，否则Room就会抛出异常*/
+                database.execSQL("create table Book (id integer primary key autoincrement not null," +
+                        "name text not null, pages integer not null)")
+            }
+        }
+        
+        val MIGRATION_2_3= object :Migration(2,3){
+            override fun migrate(database: SupportSQLiteDatabase) {
+                /*Book表 新增author列*/
+                database.execSQL("alter table Book add column author text not null default 'unknown'")
+            }
+        }
+
+        private var instance: AppDatabase? = null
+
+        fun getDatabase(context:Context):AppDatabase{
+            instance?.let {
+                return it
+            }
+            return Room.databaseBuilder(context.applicationContext,AppDatabase::class.java,"app_database")
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                .build().apply {
+                    instance = this
+                }
+        }
+    }
+}
+```
