@@ -228,7 +228,7 @@ binding.stopServiceBtn.setOnClickListener {
 }
 ```
 
-> Service也可以在内部嗲用stopSelf自我停止运行。
+> Service也可以在内部调用stopSelf自我停止运行。
 
 > 从Android8之后，只有应用保持在前台可见的状态情况下，Service才能保证稳定运行，应用进入后台后，Service随时都有可能被系统回收。
 >

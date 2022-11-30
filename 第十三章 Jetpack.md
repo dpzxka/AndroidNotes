@@ -8,9 +8,9 @@
 
 > 专门用于存放于外界相关的数据，界面上能看到的数据，相关变量都应该存放在ViewModel中给，减少Activity中逻辑
 
-ViewModel的生命周期和Activity不同，可以保证选装屏幕时，不会重新创建，只有当Activity退出时才和Activity一块销毁。保证数据在旋转过程中不丢失。
+ViewModel的生命周期和Activity不同，可以保证旋转屏幕时，不会重新创建，只有当Activity退出时才和Activity一块销毁。保证数据在旋转过程中不丢失。
 
-![image-20221126165528423](C:/Users/xkadp/AppData/Roaming/Typora/typora-user-images/image-20221126165528423.png)
+![image-20221126165528423](https://raw.githubusercontent.com/dpzxka/typora_pictures/master/image-20221126165528423.png)
 
 ### 1、基本用法
 
@@ -191,13 +191,13 @@ class MyObserver(val lifecyle:Lifecycle):LifecycleObserver {
 
 通过调用`lifecyle.currentState`主动获取生命周期状态，枚举状态：`INITIALIZED、DESTROYED、CREATED、STARTED、RESUMED`
 
-![image-20221126233050589](C:/Users/xkadp/AppData/Roaming/Typora/typora-user-images/image-20221126233050589.png)
+![image-20221126233050589](https://raw.githubusercontent.com/dpzxka/typora_pictures/master/image-20221126233050589.png)
 
 > 当获取的生命周期状态是CREATED的时候，说明onCreate()方法已经执行了，但 是onStart()方法还没有执行。当获取的生命周期状态是STARTED的时候，说明onStart() 方法已经执行了，但是onResume()方法还没有执行.
 
 ## 三、LiveData
 
-是Jetpack提供的一种响应式编程组件，它可以包含任何类型的数据，并在数据发生 变化的时候通知给观察者。
+是Jetpack提供的一种响应式编程组件，它可以包含任何类型的数据，并在数据发生变化的时候通知给观察者。
 
 ### 1、基本用法
 
@@ -253,9 +253,12 @@ class ViewModelDemoActivity : AppCompatActivity() {
         binding.plusOneBtn.setOnClickListener {
             viewModel.plusOne()
         }
-        viewModel.counter.observe(this, Observer {
+        /*viewModel.counter.observe(this, Observer {
             binding.infoText.text = it.toString()
-        })
+        })*/
+        viewModel.counter.observe(this){
+            binding.infoText.text = it.toString()
+        }
     }
 
     override fun onPause() {
@@ -267,7 +270,7 @@ class ViewModelDemoActivity : AppCompatActivity() {
 }
 ```
 
-> 当一个Java方法同时接收两个单抽象方法接口参数时，要么同时使用函数式API的写法，要么都不使用函数式API的写法。由于我们第一个参数传的是this，因此第二个参 数就无法使用函数式API的写法了。
+> 当一个Java方法同时接收两个单抽象方法接口参数时，要么同时使用函数式API的写法，要么都不使用函数式API的写法。由于我们第一个参数传的是this，因此第二个参数就无法使用函数式API的写法了。
 
 observe()方法来观察数据的变化,任何LiveData对象都可以调用它的observe()方法来观察数据的变化。
 
@@ -345,7 +348,7 @@ class MainViewModel(countReserved:Int):ViewModel(){
 
 Transformations的map()方法来对LiveData的数据类型进行转换。map()方法接收两个参数：第一个参数是原始的LiveData对象；第二个参数是一个转换函数，我们在转换函数里编写具体的转换逻辑即可.
 
-将userLiveData声明成了private，以保证数据的封装性。外部使用的时候只 要观察userName这个LiveData就可以了。当userLiveData的数据发生变化时，map()方法 会监听到变化并执行转换函数中的逻辑，然后再将转换之后的数据通知给userName的观察者。
+将userLiveData声明成了private，以保证数据的封装性。外部使用的时候只要观察userName这个LiveData就可以了。当userLiveData的数据发生变化时，map()方法会监听到变化并执行转换函数中的逻辑，然后再将转换之后的数据通知给userName的观察者。
 
 #### switchMap
 
@@ -400,7 +403,7 @@ class MainViewModel(countReserved:Int) : ViewModel() {
 }
 ```
 
-> 外部调用MainViewModel的get方法来获取用户数据时，并不会发起任何请求或函数调用，只会将传入的数据设置到userIdLiveData中。
+> 外部调用MainViewModel的getUser方法来获取用户数据时，并不会发起任何请求或函数调用，只会将传入的数据设置到userIdLiveData中。
 >
 > 一旦userLiveData的数据发生变化，观察的userIdLiveData的switchMap方法就会执行，调用编写的转换函数。
 >
@@ -447,7 +450,7 @@ fun refresh(){
 
 ## 四、Room
 
-> ORM（Object Relational Mapping）也叫对象关系映射。编程语言是面向对象语言，而使用的数据库则是关系型数据库，将面向对象的语言和面向关系的数据库之 间建立一种映射关系，称为ORM
+> ORM（Object Relational Mapping）也叫对象关系映射。编程语言是面向对象语言，而使用的数据库则是关系型数据库，将面向对象的语言和面向关系的数据库之间建立一种映射关系，称为ORM
 
 ### 1、增删改查
 
@@ -484,9 +487,10 @@ dependencies{
 
 ```kotlin
 /**
- * Entity 声明成一个实体类*/
+ * Entity 声明成一个实体类
+ */
 @Entity
-data class Users(var firstName:String,val lastName:String,var age:Int) {
+data class Users(var firstName:String, val lastName:String, var age:Int) {
 
     /*设置ID字段，将此字段设置为主键。autoGenerate 指定为true，使得主键的值自动生成*/
     @PrimaryKey(autoGenerate = true)
@@ -494,7 +498,7 @@ data class Users(var firstName:String,val lastName:String,var age:Int) {
 }
 ```
 
-2、定义Dao层，所有访问数据库的操作都是在这里封装的。而Dao要做的事情就是覆盖所有的业务需求，使得业务方永远只需要与Dao 层进行交互，而不必和底层的数据库打交道
+2、定义Dao层，所有访问数据库的操作都是在这里封装的。而Dao要做的事情就是覆盖所有的业务需求，使得业务方永远只需要与Dao层进行交互，而不必和底层的数据库打交道
 
 ```kotlin
 //添加Dao注解，Room才可以识别成Dao。根据业务需求对各种数据库操作进行封装。
@@ -528,7 +532,7 @@ interface UserDao {
 
 3、定义Database层：定义数据库版本号，包含哪些实体类，以及提供Dao层的访问实例
 
-AppDatabase类必须继承自RoomDatabase类，并且一定要使用abstract关键字将它声明成抽象类，然后提供相应的抽象方法，用于获取之前编写的Dao的实例,只需要进行方法声明即可，具体是心啊由Room底层自动完成。
+AppDatabase类必须继承自RoomDatabase类，并且一定要使用abstract关键字将它声明成抽象类，然后提供相应的抽象方法，用于获取之前编写的Dao的实例,只需要进行方法声明即可，具体是由Room底层自动完成。
 
 ```kotlin
 @Database(version = 1, entities = [Users::class])

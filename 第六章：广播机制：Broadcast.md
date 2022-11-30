@@ -117,19 +117,19 @@ class BroadcastReceiverActivity : AppCompatActivity() {
 
    ```xml
    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+   
+   <receiver
+       android:name=".broadcastdemo.simplebroadcst.BootCompleteRecevier"
+       android:enabled="true"
+       android:exported="true">
+   
+       <intent-filter>
+           <action android:name="android.intent.action.BOOT_COMPLETED"/>
+       </intent-filter>
+   </receiver>
    ```
 
-```xml
-<receiver
-    android:name=".broadcastdemo.simplebroadcst.BootCompleteRecevier"
-    android:enabled="true"
-    android:exported="true">
 
-    <intent-filter>
-        <action android:name="android.intent.action.BOOT_COMPLETED"/>
-    </intent-filter>
-</receiver>
-```
 
 ## 4、如何发送广播
 

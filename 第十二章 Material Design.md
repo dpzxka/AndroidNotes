@@ -6,7 +6,7 @@
 
 不仅继承ActionBar的所有功能，灵活性更高，可以配合其他控件完成Materin Design效果
 
-![image-20221124165910500](C:\Users\dpzxka\AppData\Roaming\Typora\typora-user-images\image-20221124165910500.png)
+![ToolBar颜色属性](https://raw.githubusercontent.com/dpzxka/typora_pictures/master/image-20221129211757299.png)
 
 关闭默认ActionBar主题：
 
@@ -59,7 +59,7 @@ override fun onCreate(savedInstanceState: Bundle?) {
 }
 ```
 
-Toolbar 中的action按钮只会显示图标，菜单中的action按钮只会显示文字
+Toolbar中的action按钮只会显示图标，菜单中的action按钮只会显示文字
 
 ## 2、滑动菜单
 
@@ -213,9 +213,8 @@ binding.fab.setOnClickListener {
 
 ### 1、MaterialCardView
 
-> 需要设置Material的主题
+> 需要设置Material的主题，加上一个属性：android:theme="@style/Theme.MaterialComponents"或"@style/Theme.MaterialComponents.Light"
 >
-> 需要加上一个属性：android:theme="@style/Theme.MaterialComponents"或"@style/Theme.MaterialComponents.Light"
 
 MaterialCardView用于实现卡片式布局效果，也是一个FrameLayout，只是额外提供了圆角和阴影效果。
 
@@ -298,7 +297,7 @@ class FruitKa(val name:String,val imageId:Int)
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-        <!-scaleType 指定图片的缩放模式，centerCrop让图片保持原有比例填充满ImageView，并将超出屏幕部分裁剪掉-->
+        <!-scaleType 指定图片的缩放模式，centerCrop让图片保持原有比例填充满ImageView，并将超出屏幕部分裁剪掉 ->
         <ImageView
             android:scaleType="centerCrop"
             android:id="@+id/image_ka"
@@ -428,7 +427,7 @@ AppBarLayout接收到滚动事件的时候，它内部的子控件可以指定�
 >
 > snap表示当Toolbar还没有完全隐藏或显示的时候，会根据当前滚动的距离，自动选择是隐藏还是显示
 
-```kotlin
+```xml
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -460,6 +459,29 @@ AppBarLayout接收到滚动事件的时候，它内部的子控件可以指定�
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
+```
+
+在AppBarLayout，中添加其他布局，也可以同样适用。
+
+```xml
+<com.google.android.material.appbar.AppBarLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <androidx.appcompat.widget.Toolbar
+        app:layout_scrollFlags="scroll|enterAlways|snap"
+        app:popupTheme="@style/Theme.AppCompat.Light"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        android:background="@color/design_default_color_primary"
+        android:id="@+id/toolBar2"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:layout_constraintTop_toTopOf="parent" />
+    <Button
+        app:layout_scrollFlags="scroll|enterAlways|snap"
+        android:text="Test"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+</com.google.android.material.appbar.AppBarLayout>
 ```
 
 ## 5、下拉刷新
@@ -501,6 +523,7 @@ override fun onCreate(savedInstanceState: Bundle?) {
 		binding.swipeRefresh.setOnRefreshListener {
 	    refreshFruits(adapterKa)
 	}
+}
 
 private fun refreshFruits(adapterKa: FruitAdapterKa){
         thread {

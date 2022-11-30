@@ -148,3 +148,13 @@
     通过pull命令：
 
     `git pull origin master`等同于fetch和merge命令合并。
+
+13. 远程版本库与本地版本库
+
+    克隆远程版本库到本地：
+
+    进入本地工程目录下：
+
+    https://github.com/dpzxka/SunnyWeather.git
+
+    进入SunnyWeather目录，将远程版本中的所有的文件复制粘贴到本地目录中，这样可以将整个本地工程目录添加到
