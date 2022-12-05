@@ -16,7 +16,7 @@ ViewModel的生命周期和Activity不同，可以保证旋转屏幕时，不会
 
 创建对应ViewModel
 
-```
+```kotlin
 /*规范：每一个Activity或Fragment都创建一个对应的ViewModel*/
 class MainViewModel : ViewModel() {
     var counter = 0
@@ -27,7 +27,7 @@ class MainViewModel : ViewModel() {
 
 ```kotlin
 class ViewModelDemoActivity : AppCompatActivity() {
-    lateinit var binding:ActivityViewModelDemoBinding
+    lateinit var binding: ActivityViewModelDemoBinding
 
     lateinit var viewModel: MainViewModel
 
@@ -167,7 +167,7 @@ OnLifecycleEvent注解，生命周期事件类型：
 lifecycleOwner.lifecycle.addObserver(MyObserver())
 ```
 
-> Activity是继承自AppCompatActivity的，或者你的Fragment是继承自 androidx.fragment.app.Fragment的，那么它们本身就是一个LifecycleOwner的实例
+> Activity是继承自AppCompatActivity的，或者你的Fragment是继承自androidx.fragment.app.Fragment的，那么它们本身就是一个LifecycleOwner的实例
 
 ```kotlin
 override fun onCreate(savedInstanceState: Bundle?) {
@@ -311,7 +311,7 @@ class MainViewModel(countReserved:Int) : ViewModel() {
 }
 ```
 
-当外部调用counter变量时，实际上获得的就是_counter的实例，但是无法给 counter设置数据，从而保证了ViewModel的数据封装性
+当外部调用counter变量时，实际上获得的就是_counter的实例，但是无法给counter设置数据，从而保证了ViewModel的数据封装性
 
 ### 2、map和switchMap
 
@@ -352,9 +352,9 @@ Transformations的map()方法来对LiveData的数据类型进行转换。map()�
 
 #### switchMap
 
-LiveData对象的有可能ViewModel中的某个LiveData对象 是调用另外的方法获取的。
+LiveData对象的有可能ViewModel中的某个LiveData对象是调用另外的方法获取的。
 
-如单例类：根据传入的参数，从服务器获取或者数据库查到对应的User对象，每次见传入的userId用作用户名来创建一个新的User对象，每次调用 getUser()方法都会返回一个新的LiveData实例。
+如单例类：根据传入的参数，从服务器获取或者数据库查到对应的User对象，每次见传入的userId用作用户名来创建一个新的User对象，每次调用getUser()方法都会返回一个新的LiveData实例。
 
 ```kotlin
 object Repository {

@@ -1,6 +1,6 @@
 ## Kotlin语言
 
-### 简介：
+### 1、简介：
 
 ### 变量：
 
@@ -28,7 +28,7 @@ val a:Int = 10
 | char             | Char               | 字符型       |
 | byte             | Byte               | 字节型       |
 
-> 永远优 先使用val来声明一个变量，而当val没有办法满足你的需求时再使用var。
+> 永远优先使用val来声明一个变量，而当val没有办法满足你的需求时再使用var。
 
 
 
@@ -133,11 +133,11 @@ val empt = emptyArray<Int>()
 
 
 
-### 函数
+### 2、函数
 
-> 函 数和方法就是同一个概念，这两种叫法都是从英文翻译过来的，函数翻译自function，方法翻 译自method，它们并没有什么区别，只是不同语言的叫法习惯不一样而已。
+> 函 数和方法就是同一个概念，这两种叫法都是从英文翻译过来的，函数翻译自function，方法翻译自method，它们并没有什么区别，只是不同语言的叫法习惯不一样而已。
 >
-> main()函数就是一个函数，只不过它比较特 殊，是程序的入口函数，即程序一旦运行，就是从main()函数开始执行的。
+> main()函数就是一个函数，只不过它比较特殊，是程序的入口函数，即程序一旦运行，就是从main()函数开始执行的。
 
 语法规则：fun 函数名(参数名：参数类型，参数名：参数类型)：返回值类型(可选，没有返回值不写)
 
@@ -154,7 +154,7 @@ fun largerNumber3(num1: Int, num2: Int) = max(num1, num2)
 
 ```
 
-### 程序的逻辑控制
+#### 程序的逻辑控制
 
 #### if条件语句
 
@@ -255,7 +255,7 @@ for(i in 0 until 10 step 2){ //通过step关键字
 
 降序
 
-```
+```kotlin
 for(i in 10 downTo 1){
 	pringln(i)
 }
@@ -263,7 +263,7 @@ for(i in 10 downTo 1){
 
 
 
-### 面向对象编程
+#### 面向对象编程
 
 ```kotlin
 class Person {
@@ -289,9 +289,9 @@ fun main(){
 
 任何一个非抽象类默认都是不可继承的，相当于java中年给类声明了final关键字。默认所有非抽象类都不可继承。非抽象类继承，添加关键字：open
 
-```
+```kotlin
 open class Person{
-...
+	...
 }
 ```
 
@@ -318,7 +318,7 @@ class Student(val sno:String,val grade:Int) : Person(){}
 val student = Student("a123",5)
 ```
 
-主构造函数中添加逻辑，需要添加init结构体
+主构造函数中添加逻辑，需要添加`init`结构体
 
 ```kotlin
 class Student(val sno:String,val grade:Int) : Person(){
@@ -356,7 +356,7 @@ class StudentDemo:Person {
 }
 ```
 
-### 接口
+#### 接口
 
 > Kotlin也是单继承结构，任何一个类最多只能继承一个类，可以实现任意多个接口。
 
@@ -400,7 +400,7 @@ interface Study {
 }
 ```
 
-### 修饰符
+#### 修饰符
 
 > public，表示对所有类可见，默认项（java中默认项是protected）
 >
@@ -418,11 +418,10 @@ interface Study {
 | default   | 同一包路径下的类可见（默认）       | 无                 |
 | internal  | 无                                 | 同一模块中的类可见 |
 
-### 数据类：
+#### 数据类：
 
 ```kotlin
-data class Cellphone (val brand:String,val price:Double) {
-}
+data class Cellphone (val brand:String,val price:Double)
 ```
 
 类前面加上`data`关键词，表示当前类是一个数据类，会根据主构造函数中参数自动实现equals(),hashCode(),toString()等固定且无实际逻辑意义的方法。
@@ -436,7 +435,7 @@ println(cellphone1)
 println("cellphone1 equals cellephone2 "+(cellphone1==cellphone2))
 ```
 
-### 单例
+#### 单例
 
 ```kotlin
 object Singleton {
@@ -452,7 +451,7 @@ object Singleton {
 Singleton.singletonTest()
 ```
 
-### Lambda编程
+### 3、Lambda编程
 
 #### 集合创建与遍历
 
@@ -560,7 +559,7 @@ fun findMaxLength(){
 }
 ```
 
-最外层是一对大括号，如果有参数传入到Lambda表达式中，还需要生命参数列表，参数列表的结尾使用一个`->`符号，表示参数列表的结束以及函数体的开始，函数体中可以编写任意行代码(不建议太长)，并且最后一行代码会自动作为Lambda表达式的返回值。
+最外层是一对大括号，如果有参数传入到Lambda表达式中，还需要声明参数列表，参数列表的结尾使用一个`->`符号，表示参数列表的结束以及函数体的开始，函数体中可以编写任意行代码(不建议太长)，并且最后一行代码会自动作为Lambda表达式的返回值。
 
 
 
@@ -667,17 +666,19 @@ Thread{
 
 
 
-### 标准函数和静态方法
+### 4、标准函数和静态方法
 
-> Kotlin的标准函数指的是Standard.kt文件中定义的函数，任何Kotlin代码都可以自由地调用所 有的标准函数。
+> Kotlin的标准函数指的是Standard.kt文件中定义的函数，任何Kotlin代码都可以自由地调用所有的标准函数。
 
 #### 标准函数let
 
-配合?.操作符来进行 辅助判空处理
+配合?.操作符来进行辅助判空处理
 
 #### 标准函数with
 
-> 接收两个参数：参1：任意类型 的对象，参2：Lambda表达式。with函数会在Lambda表达式中提供一个第一个参数对象的上下文，并使用lambda表达式的最后一行代码作为返回值返回。
+> 接收两个参数：参1：任意类型的对象，参2：Lambda表达式。
+>
+> with函数会在Lambda表达式中提供一个第一个参数对象的上下文，并使用lambda表达式的最后一行代码作为返回值返回。
 >
 > 作用：可以在连续调用同一个对象的多个方法时让代码变的更加精简。
 
@@ -734,7 +735,7 @@ fun resultApply(){
 }
 ```
 
-### 定义静态方法
+#### 定义静态方法
 
 > 1. 单例类：会把类中的所有的方法全部变成类似静态方法的调用方式
 > 2. 希望类中的某一个方法变成静态方法的调用方式。companion object，会在类的内部创建一个伴生类，一个类只会存在一个伴生类。
@@ -774,7 +775,7 @@ fun resultApply(){
 
 #### 定义静态方法：
 
-[类静态方法]()：在语法的形式上模仿了静态方法 的调用方式，实际上它们都不是真正的静态方法
+[类静态方法]()：在语法的形式上模仿了静态方法的调用方式，实际上它们都不是真正的静态方法
 
 1. 单例类：
 
@@ -931,8 +932,7 @@ fun resultApply(){
 #### 拓展函数
 
 ```kotlin
-/*相比于定义一个普通的函数，定义扩展函数只需要在函数名的前面加上一个ClassName.的语
-法结构，就表示将该函数添加到指定类当中了。*/
+/*相比于定义一个普通的函数，定义扩展函数只需要在函数名的前面加上一个ClassName.的语法结构，就表示将该函数添加到指定类当中了。*/
 /*fun ClassName.methodName(param1: Int, param2: Int): Int {
     return 0
 }*/
@@ -971,8 +971,7 @@ class Obj {
 class Money(val value:Int) {
     /*通过运算符重载来实现Money对象来相加*/
     operator fun plus(money: Money):Money{
-        /*当前Money对象的value和参数传入的Money对象的value相加，然后将得到的
-和传给一个新的Money对象并将该对象返回*/
+        /*当前Money对象的value和参数传入的Money对象的value相加，然后将得到的和传给一个新的Money对象并将该对象返回*/
         val sum = value + money.value
         return Money(sum)
     }
@@ -1042,7 +1041,7 @@ val string = "String" * (1..20).random()
 
 #### 6.1定义高阶函数
 
-> 如果一个函数接收另一个函数作为参数，或者返回值的类型是 另一个函数，那么该函数就称为高阶函数。
+> 如果一个函数接收另一个函数作为参数，或者返回值的类型是另一个函数，那么该函数就称为高阶函数。
 
 基本规则：
 
@@ -1087,7 +1086,7 @@ fun minus(num1: Int,num2: Int):Int{
 fun main(){
     val num1 = 100
     val num2 =89
-    /*函数引用方式:表示将plus()和minus()函数作为参数传递给num1AndNum2()函数*/
+    /*函数引用方式 :: 表示将plus()和minus()函数作为参数传递给num1AndNum2()函数*/
     val result = num1AndNum2(num1,num2,::plus)
     val result2 = num1AndNum2(num1,num2,::minus)
     println(result)
@@ -1177,9 +1176,9 @@ inline fun inlineTest(block: () -> Unit, noinline block2: () -> Unit) {}
 
 > 为什么Kotlin还要提供一个noinline关键字来排除内联功能呢？
 >
-> 这是因为内联的函数类型参数在编译的时候会被进行代码替换，因此它没有真正 的参数属性。非内联的函数类型参数可以自由地传递给其他任何函数，因为它就是一个真实的 参数，而内联的函数类型参数只允许传递给另外一个内联函数，这也是它最大的局限性。
+> 这是因为内联的函数类型参数在编译的时候会被进行代码替换，因此它没有真正的参数属性。非内联的函数类型参数可以自由地传递给其他任何函数，因为它就是一个真实的参数，而内联的函数类型参数只允许传递给另外一个内联函数，这也是它最大的局限性。
 
-内联函数和非内联函数还有一个重要的区别，那就是内联函数所引用的Lambda表达式 中是可以使用return关键字来进行函数返回的，而非内联函数只能进行局部返回。
+内联函数和非内联函数还有一个重要的区别，那就是内联函数所引用的Lambda表达式中是可以使用return关键字来进行函数返回的，而非内联函数只能进行局部返回。
 
 ```kotlin
 package com.example.langue.advancedfunction
@@ -1402,7 +1401,7 @@ val values1 = cvOf("name" to "Game of Thrones","author" to "George Martin","page
   }
   ```
 
-  > 在默认情况下，所有的泛型都是可以指定成可空类型的，这是因为在不手动指定上界的 时候，泛型的上界默认是Any?。而如果想要让泛型的类型不可为空，只需要将泛型的上界手动 指定成Any
+  > 在默认情况下，所有的泛型都是可以指定成可空类型的，这是因为在不手动指定上界的时候，泛型的上界默认是Any?。而如果想要让泛型的类型不可为空，只需要将泛型的上界手动 指定成Any
 
 ```kotlin
 fun StringBuilder.build(block: StringBuilder.() -> Unit): StringBuilder {
@@ -1462,7 +1461,7 @@ class MySet<T>(private val helperSet:HashSet<T>):Set<T> {
 
 通过类委派简化，在接口声明的后面使用by关键字，再街上受委托的辅助对象，可以免去模板式代码。如果需要对某个方法进行重写，只需要单独写一个方法，其他方法仍然可以享受类委托的便捷。
 
-```
+```kotlin
 //通过类委派简化
 class MySet<T>(private val helperSet:HashSet<T>):Set<T> by helperSet{
     fun helloWorld() = println("Hello World")
@@ -1472,7 +1471,7 @@ class MySet<T>(private val helperSet:HashSet<T>):Set<T> by helperSet{
 
 ##### 委托属性
 
-> 类委托的核心思想是将一个类的具体实现委托给另一个类去完成，而委托属性的核心思想是将 一个属性（字段）的具体实现委托给另一个类去完成。
+> 类委托的核心思想是将一个类的具体实现委托给另一个类去完成，而委托属性的核心思想是将一个属性（字段）的具体实现委托给另一个类去完成。
 
 ```kotlin
 class MyClass{
@@ -1483,11 +1482,11 @@ class MyClass{
 
 标准的代码实现模板，在Delegate类中必须实现getValue()和setValue()这 两个方法，并且都要使用operator关键字进行声明。 getValue()方法要接收两个参数：
 
-- 第一个参数用于声明该Delegate类的委托功能可以在什么 类中使用，这里写成MyClass表示仅可在MyClass类中使用；
+- 第一个参数用于声明该Delegate类的委托功能可以在什么类中使用，这里写成MyClass表示仅可在MyClass类中使用；
 
-- 第二个参数KProperty<*>是 Kotlin中的一个属性操作类，可用于获取各种属性相关的值，在当前场景下用不着，但是必须在 方法参数上进行声明。*
+- 第二个参数KProperty<*>是 Kotlin中的一个属性操作类，可用于获取各种属性相关的值，在当前场景下用不着，但是必须在方法参数上进行声明。*
 
-  另外，<*>这种泛型的写法表示不知道或者不关心泛型的具体类型，只 是为了通过语法编译而已，有点类似于Java中的写法。至于返回值可以声明成任何类型，根据具体的实现逻辑去写就行.
+  另外，<*>这种泛型的写法表示不知道或者不关心泛型的具体类型，只是为了通过语法编译而已，有点类似于Java中的写法。至于返回值可以声明成任何类型，根据具体的实现逻辑去写就行.
 
 ```kotlin
 class Delegate {
@@ -1503,7 +1502,7 @@ class Delegate {
 
 #### 3、lazy函数
 
-> by lazy并不是连在一起的关键 字，只有by才是Kotlin中的关键字，lazy在这里只是一个高阶函数而已
+> by lazy并不是连在一起的关键字，只有by才是Kotlin中的关键字，lazy在这里只是一个高阶函数而已
 
 ```kotlin
 class Later<T>(val block:() -> T) {
@@ -1584,7 +1583,7 @@ fun main(){
 }
 ```
 
-delay()函数,可以让当前协程延迟指定 的时间后运行。
+delay()函数,可以让当前协程延迟指定的时间后运行。
 
 > delay函数：是一个非阻塞时挂起的函数，只会挂起当前协程，不会影响晴天协程的运行。只能在协程的作用域或其他挂起函数中调用
 >
@@ -1659,7 +1658,7 @@ coroutineScope函数和runBlocking函数
 
 `相同点`：它可以保证其作用域内的所有代码和子协程在全部执行完之前，外部的协程会一直被挂起.
 
-`不同点`：coroutineScope函数只会阻塞当前协程，既不影响其他协程，也不影响任何线程，因此是不 会造成任何性能上的问题的。而runBlocking函数由于会挂起外部线程，如果你恰好又在主线 程中当中调用它的话，那么就有可能会导致界面卡死的情况
+`不同点`：coroutineScope函数只会阻塞当前协程，既不影响其他协程，也不影响任何线程，因此是不会造成任何性能上的问题的。而runBlocking函数由于会挂起外部线程，如果你恰好又在主线 程中当中调用它的话，那么就有可能会导致界面卡死的情况
 
 #### 2、作用域构造器
 

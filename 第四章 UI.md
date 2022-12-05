@@ -1,6 +1,6 @@
 # 第四章：UI
 
-### 一、常用控件
+## 一、常用控件
 
 ![image-20221011143438665](C:\Users\dpzxka\AppData\Roaming\Typora\typora-user-images\image-20221011143438665.png)
 
@@ -105,13 +105,11 @@ AlertDialog.Builder(this).apply {
     show()
 ```
 
-
-
-### xxxxxxxxxx override fun onReceive(context: Context, intent: Intent) {    // This method is called when the BroadcastReceiver is receiving an Intent broadcast.    Toast.makeText(context,"received in AnotherMyBroadcastReceiver",Toast.LENGTH_SHORT).show()    abortBroadcast()}kotlin
+## 二、常用布局
 
 #### 1、LinearLayout
 
-> 线性布局，
+> 线性布局
 >
 > android:orientation属性指定了排列方向是vertical，如果指定的 是horizontal，控件就会在水平方向上排列
 
@@ -252,7 +250,7 @@ AlertDialog.Builder(this).apply {
 </FrameLayout>
 ```
 
-### 三、自定义控件
+## 三、自定义控件
 
 1. 定义一个布局文件
 
@@ -356,7 +354,7 @@ AlertDialog.Builder(this).apply {
    }
    ```
 
-### 四、ListView
+## 四、ListView
 
 1. 布局文件中引入ListView控件
 
@@ -511,7 +509,7 @@ AlertDialog.Builder(this).apply {
    }
    ```
 
-### 五、RecycleView
+## 五、RecycleView
 
 1. build.gradle中引入插件
 
@@ -618,5 +616,5 @@ AlertDialog.Builder(this).apply {
    
    ```
 
-### 六、实践
+## 六、实践
 
