@@ -223,7 +223,7 @@ fun getScore(name:String) = when(name){
 
 #### 循环语句
 
-while方法同java
+ <service    android:name=".servicedemo.test.MyIntentService"    android:enabled="true"    android:exported="true" />xml
 
 kotlin区间：
 
@@ -1548,6 +1548,75 @@ if("Hello Kotlin" beginsWith "Hello"){
 ### 10、泛型
 
 #### 1、泛型实化
+
+Java的泛型功能是通过类型擦除机制来实现。泛型对类的约束只在编译时间存在，运行时候仍然按照JDK1.5之前的机制来运行，JVM识别不出在代码中指定的泛型类型。
+
+kotlin内联函数中的代码会在编译的时候自动被替换到调用它的地方，不存放泛型擦除的问题。
+
+![image-20221205195542372](https://raw.githubusercontent.com/dpzxka/typora_pictures/master/image-20221205195542372.png)
+
+最终替换样式
+
+![image-20221205201336941](C:/Users/xkadp/AppData/Roaming/Typora/typora-user-images/image-20221205201336941.png)
+
+bar()是一个带有泛型类型的内联函数，foo()函数调用了bar()函数，在代码编 译之后，bar()函数中的代码将可以获得泛型的实际类型。 这就意味着，Kotlin中是可以将内联函数中的泛型进行实化的。
+
+> 泛型实化呢？
+>
+> 1. 首先，该函数必须是内联函数才行，也就是要用inline关键字来修饰该函数。
+>
+> 2. 其次，在声明泛型的地方必须加上reified关键字来表示该泛型要进行实化。示例代码如下：
+>
+>    ```kotlin
+>    inline fun <reified T> getGenericType() {
+>    }
+>    ```
+>
+>    getGenericType()函数直接返回了当前指定泛型的实际类型。T.class这样的语法在Java中是不合法的，而在Kotlin中，借助泛型实化功能就可以使用T::class.java这样的语法了
+
+#### 2、泛型实例化应用
+
+通过intent启动activity
+
+```kotlin
+inline fun <reified T> startActivity(context: Context) {
+ val intent = Intent(context, T::class.java)
+ context.startActivity(intent)
+}
+```
+
+如果需要启动Activity时，
+
+```kotlin
+startActivity<TestActivity>(context)
+```
+
+通过高阶函数，实现传参
+
+```kotlin
+inline fun <reified T> startActivity(context: Context, block: Intent.() -> Unit) {
+ val intent = Intent(context, T::class.java)
+ intent.block()
+ context.startActivity(intent)
+}
+```
+
+调用：
+
+```kotlin
+startActivity<TestActivity>(context) {
+ putExtra("param1", "data")
+ putExtra("param2", 123)
+}
+```
+
+#### 3、泛型的协变
+
+一个泛型类或者泛型接口中的方法， 它的参数列表是接收数据的地方，因此可以称它为in位置，而它的返回值是输出数据的地方，因 此可以称它为out位置。
+
+![image-20221205202539727](C:/Users/xkadp/AppData/Roaming/Typora/typora-user-images/image-20221205202539727.png)
+
+
 
 ### 11、协程
 

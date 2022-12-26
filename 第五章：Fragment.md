@@ -3,7 +3,7 @@
 ## 1、定义
 
 ```
-Activity`界面中的一部分，可理解为模块化的`Activity
+`Activity`界面中的一部分，可理解为模块化的`Activity`
 ```
 
 > 1. `Fragment`不能独立存在，必须嵌入到`Activity`中
@@ -140,9 +140,8 @@ class LeftFragment:Fragment() {
 
 **方法2：在Activity的.java文件中动态添加**
 
-- 步骤1：在`Activity`的布局文件定义1占位符（`FrameLayout`）
-  这样做的好处是：可动态在`Activity`中添加不同的 `Fragment`，更加灵活
-
+- 步骤1：在`Activity`的布局文件定义1占位符（`FrameLayout`）,这样做的好处是：可动态在`Activity`中添加不同的 `Fragment`，更加灵活
+  
   ```xml
   <?xml version="1.0" encoding="utf-8"?>
   <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -157,9 +156,9 @@ class LeftFragment:Fragment() {
           android:layout_height="match_parent"/>
   </LinearLayout>
   ```
-
   
-
+  
+  
 - 步骤2：设置`Fragment`的布局文件
 
   ```xml
